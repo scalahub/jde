@@ -1,6 +1,8 @@
 # JSON dApp Environment (JDE) 
 (aka Tx Builder)
 
+[![Build Status](https://www.travis-ci.com/scalahub/jde.svg?branch=main)](https://www.travis-ci.com/scalahub/jde)
+
 #### What is JDE?
 
 - JDE tool for developing the offchain part of an Ergo dApp
