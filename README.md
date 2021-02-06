@@ -29,18 +29,16 @@ JDE is used in [KioskWeb](https:/github.com/scalahub/KioskWeb) wallet within a t
 
 Before describing further, it is instructive to see a complete example in action. 
 
-##### Compiling JDE from source
+- If you want to use the precompiled binary, skip to the next step. 
 
-If you want to use the precompiled binary, skip to the next step. 
+  Clone the repository and issue `sbt assembly` in the new folder to generate the jar.
+  Usually, this will be the file:
+  
+  `target/scala-2.12/JDE-assembly-0.1.jar`
+  
+- Once you have the jar, issue the command to invoke JDE:
 
-Clone the repository and issue `sbt assembly` in the new folder to generate the jar.
-Usually, this will be `target/scala-2.12/JDE-assembly-0.1.jar`.
-
-##### Running JDE
-
-Once you have the jar, issue the command to invoke JDE:
-
-`java -jar <jarFile> <jde_script_json>`
+  `java -jar <jarFile> <jde_script_json>`
 
 The following shows a sample transcript of running JDE:
 
