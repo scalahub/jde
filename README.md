@@ -23,7 +23,7 @@ JDE is more verbose than, for example, Scala. As an example, the Scala code `c =
 `{"name":"c", "first":"a", "op":"Add", "second":"b"}`.
 That said, the only thing needed to use JDE is the ability to write Json (and possibly use a pen and paper).
 
-JDE is used in [KioskWeb](https:/github.com/scalahub/KioskWeb) wallet within a tool called ["Tx Builder"](https://kioskweb.org/session/#kiosk.Wallet.txBuilder).
+JDE is used in [KioskWeb](https://github.com/scalahub/KioskWeb) wallet within a tool called ["Tx Builder"](https://kioskweb.org/session/#kiosk.Wallet.txBuilder).
 
 #### A complete example
 
