@@ -1,15 +1,14 @@
 # JSON dApp Environment (JDE) 
-(aka Tx Builder)
 
 [![Build Status](https://www.travis-ci.com/scalahub/jde.svg?branch=main)](https://www.travis-ci.com/scalahub/jde)
 
 #### What is JDE?
 
-- JDE tool for developing the offchain part of an Ergo dApp
+- A tool for developing the offchain part of an Ergo dApp. 
 - Enables one to create a transaction by specifying a **script** in Json. 
 - Can be used for many existing dApps, such as *Oracle-pools*, *Timestamping* and *Auctions*.
 
-#### How does it work?
+#### But what is it exactly?
 
 - JDE allows us to define the input and data inputs of a transaction, along with some auxiliary boxes that are neither inputs nor data-inputs.  Auxiliary boxes are used only during computation.
 - Each such box is defined using a **box definition**. A box definition is a sequence of **instructions** to filter boxes. Currently, we can filter using tokens, registers and nanoErgs. 
@@ -24,10 +23,51 @@ JDE is more verbose than, for example, Scala. As an example, the Scala code `c =
 `{"name":"c", "first":"a", "op":"Add", "second":"b"}`.
 That said, the only thing needed to use JDE is the ability to write Json (and possibly use a pen and paper).
 
+JDE is used in [KioskWeb](https:/github.com/scalahub/KioskWeb) wallet within a tool called ["Tx Builder"](https://kioskweb.org/session/#kiosk.Wallet.txBuilder).
+
 #### A complete example
 
 Before describing further, it is instructive to see a complete example in action. 
-The following script is used to timestamp a box using the dApp described [here](https://www.ergoforum.org/t/a-trustless-timestamping-service-for-boxes/432/9?u=scalahub).
+
+##### Compiling JDE from source
+
+If you want to use the precompiled binary, skip to the next step. 
+
+Clone the repository and issue `sbt assembly` in the new folder to generate the jar.
+Usually, this will be `target/scala-2.12/JDE-assembly-0.1.jar`.
+
+##### Running JDE
+
+Once you have the jar, issue the command to invoke JDE:
+
+`java -jar <jarFile> <jde_script_json>`
+
+The following shows a sample transcript of running JDE:
+
+```
+java -jar target/scala-2.12/JDE-assembly-0.1.jar src/test/resources/timestamp.json 
+
+{
+  "dataInputBoxIds" : [ "506dfb0a34d44f2baef77d99f9da03b1f122bdc4c7c31791a0c706e23f1207e7" ],
+  "inputBoxIds" : [ "4c17e0e9f72122164aa3530453675625dc69941ed3da9de6b0a8659db929709a" ],
+  "inputNanoErgs" : 1500000,
+  "inputTokens" : [ [ "dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", 995 ] ],
+  "outputs" : [ {
+    "address" : "2z93aPPTpVrZJHkQN54V7PatEfg3Ac1zKesFxUz8TGGZwPT4Rr5q6tBwsjEjounQU4KNZVqbFAUsCNipEKZmMdx2WTqFEyUURcZCW2CrSqKJ8YNtSVDGm7eHcrbPki9VRsyGpnpEQvirpz6GKZgghcTRDwyp1XtuXoG7XWPC4bT1U53LhiM3exE2iUDgDkme2e5hx9dMyBUi9TSNLNY1oPy2MjJ5seYmGuXCTRPLqrsi",
+    "value" : 1500000,
+    "registers" : [ ],
+    "tokens" : [ [ "dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", 994 ] ]
+  }, {
+    "address" : "4MQyMKvMbnCJG3aJ",
+    "value" : 2000000,
+    "registers" : [ "0e20506dfb0a34d44f2baef77d99f9da03b1f122bdc4c7c31791a0c706e23f1207e7", "04c08633" ],
+    "tokens" : [ [ "dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", 1 ] ]
+  } ]
+}
+
+```
+
+The program outputs an unsigned transaction with the inputs/data-inputs/outputs described using the script contained in the file [timestamp.json](src/test/resources/timestamp.json). The file contains the following JSON script. The script is used to timestamp a box using the dApp described [here](https://www.ergoforum.org/t/a-trustless-timestamping-service-for-boxes/432/9?u=scalahub).
 ```
 {
   "constants": [
@@ -160,42 +200,11 @@ The following script is used to timestamp a box using the dApp described [here](
   "fee": 2000000
 }
 ```
-
-In order to use JDE, first clone the repository and issue `sbt assembly` to generate the jar.
-Usually, this will be `target/scala-2.12/JDE-assembly-0.1.jar`.
-
-Then issue the command to invoke JDE:
-
-`java -jar <jar> <jde_script_json>`
-
-The following shows a sample transcript of running JDE with the above script:
-
-```
-java -jar target/scala-2.12/JDE-assembly-0.1.jar src/test/resources/timestamp.json 
-
-{
-  "dataInputBoxIds" : [ "506dfb0a34d44f2baef77d99f9da03b1f122bdc4c7c31791a0c706e23f1207e7" ],
-  "inputBoxIds" : [ "4c17e0e9f72122164aa3530453675625dc69941ed3da9de6b0a8659db929709a" ],
-  "inputNanoErgs" : 1500000,
-  "inputTokens" : [ [ "dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", 995 ] ],
-  "outputs" : [ {
-    "address" : "2z93aPPTpVrZJHkQN54V7PatEfg3Ac1zKesFxUz8TGGZwPT4Rr5q6tBwsjEjounQU4KNZVqbFAUsCNipEKZmMdx2WTqFEyUURcZCW2CrSqKJ8YNtSVDGm7eHcrbPki9VRsyGpnpEQvirpz6GKZgghcTRDwyp1XtuXoG7XWPC4bT1U53LhiM3exE2iUDgDkme2e5hx9dMyBUi9TSNLNY1oPy2MjJ5seYmGuXCTRPLqrsi",
-    "value" : 1500000,
-    "registers" : [ ],
-    "tokens" : [ [ "dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", 994 ] ]
-  }, {
-    "address" : "4MQyMKvMbnCJG3aJ",
-    "value" : 2000000,
-    "registers" : [ "0e20506dfb0a34d44f2baef77d99f9da03b1f122bdc4c7c31791a0c706e23f1207e7", "04c08633" ],
-    "tokens" : [ [ "dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", 1 ] ]
-  } ]
-}
-
-```
+The following sections describe the syntax of the JSON scripting language in more detail. 
 
 #### Protocol
 
-Internally, the JSON script maps to an instance of the [**Protocol**](src/main/scala/jde/compiler/model/package.scala#L13-L30) class.
+Each JSON script internally maps to a Scala object, an instance of the [**Protocol**](src/main/scala/jde/compiler/model/package.scala#L13-L30) class.
 A *Protocol* is the highest level of abstraction in JDE and can be thought of as a sequence of instructions for interacting with a dApp.
 As can be seen from the source code, such an instance contains the following fields: 
 - Optional sequence of `Constant` declarations, using which we can encode arbitrary values into the script.
