@@ -65,7 +65,7 @@ java -jar target/scala-2.12/JDE-assembly-0.1.jar src/test/resources/timestamp.js
 
 ```
 
-The program outputs an unsigned transaction with the inputs/data-inputs/outputs described using the script contained in the file [timestamp.json](src/test/resources/timestamp.json). The file contains the following JSON script. The script is used to timestamp a box using the dApp described [here](https://www.ergoforum.org/t/a-trustless-timestamping-service-for-boxes/432/9?u=scalahub).
+The program outputs an unsigned transaction. More specifically, it outputs an instance of the [`CompileResult`](src/main/scala/jde/compiler/package.scala#L15) class serialized in JSON. The inputs/data-inputs/outputs of the transaction are defined using the script contained in the file [timestamp.json](src/test/resources/timestamp.json). This script is used to timestamp a box using the dApp described [here](https://www.ergoforum.org/t/a-trustless-timestamping-service-for-boxes/432/9?u=scalahub) and has the following code:
 ```
 {
   "constants": [
@@ -410,7 +410,7 @@ Each input definition matches at most one input by default. If multiple inputs a
 
 #### The Multiple type
 
-Multiple objects defined via `Constant` or matched using the `Multi` option are internally stored as an instance of the [`Multiple` class](compiler/model/package.scala#L52-L62).
+Multiple objects defined via `Constant` or matched using the `Multi` option are internally stored as an instance of the [`Multiple` class](src/main/scala/jde/compiler/model/package.scala#L52-L62).
 
 #### Internals of JDE
 
