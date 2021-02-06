@@ -408,18 +408,18 @@ Each input definition matches at most one input by default. If multiple inputs a
 ]
 ```
 
-#### The Multiple type
-
-Multiple objects defined via `Constant` or matched using the `Multi` option are internally stored as an instance of the [`Multiple` class](src/main/scala/jde/compiler/model/package.scala#L52-L62).
+Multiple objects defined via `Constant` or matched using the `Multi` option are internally stored as an instance of the [`Multiple`](src/main/scala/jde/compiler/package.scala#L31-L59) class.
 
 #### Internals of JDE
 
-JDE is built on top of Kiosk and each instance of a **Declaration** maps to an instance of a [`Kiosktype[_]`](https://github.com/scalahub/Kiosk/src/main/scala/ergo/package.scala#L32-L40). Speficially:
-
+JDE is built on top of [Kiosk](https://github.com/scalahub/Kiosk) and each instance of a **Declaration** in JDE maps to an instance of some [`Kiosktype[_]`](https://github.com/scalahub/Kiosk/blob/master/src/main/scala/kiosk/ergo/package.scala#L32-L40). Speficially:
+ 
 - **Address** maps to `KioskErgoTree`.
 - **Id** maps to `KioskCollByte` of size 32.
 - **Register** maps to `KioskType[_]`.
 - **Long** maps to `KioskLong`.
+
+#### Output of JDE
 
 The JDE compiler takes as input an instance of **Protocol** and outputs and instance of 
 [**CompileResult**](src/main/scala/jde/compiler/package.scala#L15), which contains the following details:
