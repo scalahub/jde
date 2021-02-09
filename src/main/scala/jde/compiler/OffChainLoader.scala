@@ -1,15 +1,27 @@
 package jde.compiler
 
 import jde.compiler.model._
+import kiosk.ergo
 
 import java.util.UUID
 
 class OffChainLoader(implicit dictionary: Dictionary) {
   def load(p: Protocol): Unit = {
-    (optSeq(p.constants) ++ optSeq(p.unaryOps) ++ optSeq(p.binaryOps) ++ optSeq(p.branches) ++ optSeq(p.postConditions)).foreach(dictionary.addDeclaration)
-    optSeq(p.auxInputUuids).zipWithIndex.foreach { case ((input, uuid), index)  => loadInput(input)(uuid, index, InputType.Aux) }
-    optSeq(p.dataInputUuids).zipWithIndex.foreach { case ((input, uuid), index) => loadInput(input)(uuid, index, InputType.Data) }
-    p.inputUuids.zipWithIndex.foreach { case ((input, uuid), index)             => loadInput(input)(uuid, index, InputType.Code) }
+    (optSeq(p.constants) ++ optSeq(p.unaryOps) ++ optSeq(p.binaryOps) ++ optSeq(
+      p.branches
+    ) ++ optSeq(p.postConditions)).foreach(dictionary.addDeclaration)
+    optSeq(p.auxInputUuids).zipWithIndex.foreach {
+      case ((input, uuid), index) =>
+        loadInput(input)(uuid, index, InputType.Aux)
+    }
+    optSeq(p.dataInputUuids).zipWithIndex.foreach {
+      case ((input, uuid), index) =>
+        loadInput(input)(uuid, index, InputType.Data)
+    }
+    p.inputUuids.zipWithIndex.foreach {
+      case ((input, uuid), index) =>
+        loadInput(input)(uuid, index, InputType.Code)
+    }
     p.outputs.foreach(loadOutput)
   }
 
@@ -27,9 +39,17 @@ class OffChainLoader(implicit dictionary: Dictionary) {
   private def noBoxError(implicit inputType: InputType.Type, inputIndex: Int) =
     throw new Exception(s"No $inputType-input matched at ${MatchingOptions.Optional} index $inputIndex when getting target")
 
-  private def getInput(mapping: Map[UUID, Multiple[OnChainBox]])(implicit uuid: UUID, inputType: InputType.Type, index: Int): Multiple[OnChainBox] = mapping.getOrElse(uuid, noBoxError)
+  private def getInput(mapping: Map[UUID, Multiple[OnChainBox]])(implicit
+      inputUuid: UUID,
+      inputType: InputType.Type,
+      inputIndex: Int
+  ): Multiple[OnChainBox] = mapping.getOrElse(inputUuid, noBoxError)
 
-  private def loadInput(input: Input)(implicit inputUuid: UUID, inputIndex: Int, inputType: InputType.Type): Unit = {
+  private def loadInput(input: Input)(implicit
+      inputUuid: UUID,
+      inputIndex: Int,
+      inputType: InputType.Type
+  ): Unit = {
     input.id.foreach { id =>
       id.onChainVariable.foreach(dictionary.addOnChainDeclaration(_, inputType, getInput(_).map(_.boxId)))
       dictionary.addDeclarationLater(id)
@@ -48,26 +68,60 @@ class OffChainLoader(implicit dictionary: Dictionary) {
   }
 
   private def loadRegister(register: Register)(implicit inputUuid: UUID, inputIndex: Int, inputType: InputType.Type): Unit = {
-    register.onChainVariable.foreach(dictionary.addOnChainDeclaration(_, inputType, getInput(_).map(_.registers(RegNum.getIndex(register.num)))))
+    register.onChainVariable.foreach(
+      dictionary.addOnChainDeclaration(
+        _,
+        inputType,
+        getInput(_).map(_.registers(RegNum.getIndex(register.num)))
+      )
+    )
     dictionary.addDeclarationLater(register)
   }
 
   private def loadToken(token: Token)(implicit inputUuid: UUID, inputIndex: Int, inputType: InputType.Type): Unit = {
+
     def noIndexError = throw new Exception(s"Either token.index or token.id.value must be defined in $token")
-    def getIndicesForAmount(inputs: Map[UUID, Multiple[OnChainBox]]): Multiple[Int] = {
-      val onChainBoxes = inputs(inputUuid)
-      token.index.fold {
-        val id = token.id.getOrElse(noIndexError)
-        id.value.fold(noIndexError)(_ => onChainBoxes.map(_.stringTokenIds.indexOf(id.getValue.toString)))
+
+    def getIndicesForAmount(onChainBoxes: Multiple[OnChainBox]): Multiple[Int] = {
+      // refer to code in Reader.scala in filterByToken method
+      token.index.fold { // index is empty
+        // get index from the id of matched token
+        val id: Id = token.id.getOrElse(noIndexError)
+        id.value.fold(noIndexError) { _ =>
+          val tokenIds: Seq[String] = id.getValue.map(_.toString).seq
+          onChainBoxes.map(
+            _.stringTokenIds.zipWithIndex
+              .collectFirst { case (id, index) if tokenIds.contains(id) => index }
+              .getOrElse(noIndexError)
+          )
+        }
       }(int => onChainBoxes.map(_ => int))
     }
+
     token.id.foreach { id =>
-      id.onChainVariable.foreach(dictionary.addOnChainDeclaration(_, inputType, getInput(_).map(_.tokenIds(token.index.getOrElse(noIndexError)))))
+      id.onChainVariable.foreach(
+        dictionary.addOnChainDeclaration(
+          _,
+          inputType,
+          mapping = getInput(_).map(_.tokenIds(token.index.getOrElse(noIndexError)))
+        )
+      )
       dictionary.addDeclarationLater(id)
     }
+
     token.amount.foreach { amount =>
       amount.onChainVariable.foreach(
-        dictionary.addOnChainDeclaration(_, inputType, inputs => (getInput(inputs) zip getIndicesForAmount(inputs)) map { case (input, index) => input.tokenAmounts(index) }))
+        dictionary.addOnChainDeclaration(
+          _,
+          inputType,
+          inputs => {
+            val onChainBoxes: Multiple[OnChainBox] = getInput(inputs)
+            (onChainBoxes zip getIndicesForAmount(onChainBoxes)) map {
+              case (input, index) => input.tokenAmounts(index)
+            }
+          }
+        )
+      )
       dictionary.addDeclarationLater(amount)
     }
   }
