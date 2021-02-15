@@ -17,6 +17,8 @@ libraryDependencies ++= Seq(
   "org.mockito" % "mockito-core" % "2.23.4" % Test
 )
 
+libraryDependencies += "javax.servlet" % "servlet-api" % "2.5" % "provided"
+
 resolvers ++= Seq(
   "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/",
   "SonaType" at "https://oss.sonatype.org/content/groups/public",
@@ -34,3 +36,5 @@ lazy val root = (project in file("."))
       case x                             => MergeStrategy.first
     }
   )
+
+enablePlugins(JettyPlugin)

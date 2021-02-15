@@ -144,17 +144,6 @@
       ]
     }
   ],
-  "returns": [
-    "scTokenIn",
-    "rcTokenIn",
-    "scCircIn",
-    "rcCircIn",
-    "bcReserveIn",
-    "scCircDelta",
-    "bcDeltaWithFee",
-    "scNominalPrice",
-    "rate"
-  ],
   "outputs": [
   ],
   "unaryOps": [
@@ -260,5 +249,15 @@
       "second": "bcDeltaWithFee"
     }
   ],
-  "fee": 2000000
+  "returns": [
+    "scTokenIn",
+    "rcTokenIn",
+    "scCircIn",
+    "rcCircIn",
+    "bcReserveIn",
+    "scCircDelta",
+    "bcDeltaWithFee",
+    "scNominalPrice",
+    "rate"
+  ]
 }
