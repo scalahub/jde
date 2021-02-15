@@ -408,7 +408,7 @@ Each input definition matches at most one input by default. If multiple inputs a
 ]
 ```
 
-Multiple objects defined via `Constant` or matched using the `Multi` option are internally stored as an instance of the [`Multiple`](src/main/scala/jde/compiler/package.scala#L46-L74) class.
+Multiple objects defined via `Constant` or matched using the `Multi` option are internally stored as an instance of the [`Multiple`](src/main/scala/jde/compiler/package.scala#L48-L76) class.
 
 #### Internals of JDE
 
