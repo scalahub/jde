@@ -1,17 +1,17 @@
 package jde
 
-import kiosk.ergo.{KioskBox, KioskInt}
+import kiosk.ergo.{KioskBox, KioskCollByte, KioskInt, KioskLong, StringToBetterString}
 import kiosk.explorer.Explorer
 import jde.compiler.model.MatchingOptions.{Optional, Strict}
 import jde.compiler.model.{FilterOp, MatchingOptions, Output}
-import jde.compiler.{TxBuilder, model}
-import jde.helpers.{TraitTimestamp, TraitTokenFilter}
+import jde.compiler.{TxBuilder, model, optSeq}
+import jde.helpers.{TraitDummyProtocol, TraitTimestamp, TraitTokenFilter}
 import org.mockito.Mockito.when
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatestplus.mockito._
 import play.api.libs.json.JsResultException
 
-class MatchingSpec extends WordSpec with MockitoSugar with Matchers with TraitTokenFilter with TraitTimestamp {
+class MatchingSpec extends WordSpec with MockitoSugar with Matchers with TraitTokenFilter with TraitTimestamp with TraitDummyProtocol {
   val explorer = mock[Explorer]
   when(explorer.getHeight) thenReturn 12345
   val txBuilder = new TxBuilder(explorer)
@@ -49,7 +49,7 @@ class MatchingSpec extends WordSpec with MockitoSugar with Matchers with TraitTo
         ("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", 1235),
         ("506dfb0a34d44f2baef77d99f9da03b1f122bdc4c7c31791a0c706e23f1207e7", 123),
         ("490ef5a88d33d7b3eb7b16d4062ee9c3e204f9e6123f4bd6d97156a5b05b592a", 12),
-        ("ae57e4add0f181f5d1e8fd462969e4cc04f13b0da183676660d280ad0b64563f", 1),
+        ("ae57e4add0f181f5d1e8fd462969e4cc04f13b0da183676660d280ad0b64563f", 1)
       ),
       optBoxId = Some("af0e35e1cf5a8890d70cef498c996dcd3e7658cfadd37695425032d4f8327d8a"),
       spentTxId = None
@@ -63,7 +63,7 @@ class MatchingSpec extends WordSpec with MockitoSugar with Matchers with TraitTo
         ("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", 1233),
         ("506dfb0a34d44f2baef77d99f9da03b1f122bdc4c7c31791a0c706e23f1207e7", 123),
         ("490ef5a88d33d7b3eb7b16d4062ee9c3e204f9e6123f4bd6d97156a5b05b592a", 12),
-        ("ae57e4add0f181f5d1e8fd462969e4cc04f13b0da183676660d280ad0b64563f", 1),
+        ("ae57e4add0f181f5d1e8fd462969e4cc04f13b0da183676660d280ad0b64563f", 1)
       ),
       optBoxId = Some("af0e35e1cf5a8890d70cef498c996dcd3e7658cfadd37695425032d4f8327d8a"),
       spentTxId = None
@@ -143,7 +143,7 @@ class MatchingSpec extends WordSpec with MockitoSugar with Matchers with TraitTo
       value = 2200000L,
       registers = Array(),
       tokens = Array(
-        ("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", 1),
+        ("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", 1)
       ),
       optBoxId = Some("af0e35e1cf5a8890d70cef498c996dcd3e7658cfadd37695425032d4f8327d8a"),
       spentTxId = None
@@ -155,13 +155,12 @@ class MatchingSpec extends WordSpec with MockitoSugar with Matchers with TraitTo
       value = 3300000L,
       registers = Array(),
       tokens = Array(
-        ("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", 22),
+        ("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", 22)
       ),
       optBoxId = Some("43b0c3add1fde20244a3467798a777684f9234d1f56f31ad01a297c86c6d40c7"),
       spentTxId = None
     )
   }
-
   "Compilation for token-filter.json" should {
     "select matched boxes" in new TokenMocks {
       tokenFilterProtocol.inputs.size shouldBe 2
@@ -170,26 +169,40 @@ class MatchingSpec extends WordSpec with MockitoSugar with Matchers with TraitTo
       when(explorer.getBoxById("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea")) thenReturn fakeBox0ExactTokens
       when(explorer.getUnspentBoxes("9f5ZKbECVTm25JTRQHDHGM5ehC8tUw5g1fCBQ4aaE792rWBFrjK")) thenReturn Seq(fakeBox1ExactTokens, fakeBox2LessTokens)
       val result = new compiler.TxBuilder(explorer).compile(tokenFilterProtocol)
-      result.inputBoxIds shouldBe Seq("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", "af0e35e1cf5a8890d70cef498c996dcd3e7658cfadd37695425032d4f8327d8a")
+      result.inputBoxIds shouldBe Seq(
+        "dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea",
+        "af0e35e1cf5a8890d70cef498c996dcd3e7658cfadd37695425032d4f8327d8a"
+      )
     }
 
     "select matched boxes in any order" in new TokenMocks {
       when(explorer.getBoxById("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea")) thenReturn fakeBox0ExactTokens
       when(explorer.getUnspentBoxes("9f5ZKbECVTm25JTRQHDHGM5ehC8tUw5g1fCBQ4aaE792rWBFrjK")) thenReturn Seq(fakeBox2LessTokens, fakeBox1ExactTokens)
       val result = new compiler.TxBuilder(explorer).compile(tokenFilterProtocol)
-      result.inputBoxIds shouldBe Seq("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", "af0e35e1cf5a8890d70cef498c996dcd3e7658cfadd37695425032d4f8327d8a")
+      result.inputBoxIds shouldBe Seq(
+        "dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea",
+        "af0e35e1cf5a8890d70cef498c996dcd3e7658cfadd37695425032d4f8327d8a"
+      )
     }
 
     "reject if invalid amount in non-Optional input" in new TokenMocks {
       when(explorer.getBoxById("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea")) thenReturn fakeBox0ExactTokens
-      when(explorer.getUnspentBoxes("9f5ZKbECVTm25JTRQHDHGM5ehC8tUw5g1fCBQ4aaE792rWBFrjK")) thenReturn Seq(fakeBox2LessTokens, fakeBox1ExactTokensWrongAmount)
+      when(explorer.getUnspentBoxes("9f5ZKbECVTm25JTRQHDHGM5ehC8tUw5g1fCBQ4aaE792rWBFrjK")) thenReturn Seq(
+        fakeBox2LessTokens,
+        fakeBox1ExactTokensWrongAmount
+      )
       the[Exception] thrownBy new compiler.TxBuilder(explorer)
-        .compile(tokenFilterProtocol.copy(inputs = Seq(tokenFilterProtocol.inputs(0), tokenFilterProtocol.inputs(1).copy(options = None)))) should have message "No box matched for input at index 1"
+        .compile(
+          tokenFilterProtocol.copy(inputs = Seq(tokenFilterProtocol.inputs(0), tokenFilterProtocol.inputs(1).copy(options = None)))
+        ) should have message "No box matched for input at index 1"
     }
 
     "accept if invalid amount in Optional input" in new TokenMocks {
       when(explorer.getBoxById("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea")) thenReturn fakeBox0ExactTokens
-      when(explorer.getUnspentBoxes("9f5ZKbECVTm25JTRQHDHGM5ehC8tUw5g1fCBQ4aaE792rWBFrjK")) thenReturn Seq(fakeBox2LessTokens, fakeBox1ExactTokensWrongAmount)
+      when(explorer.getUnspentBoxes("9f5ZKbECVTm25JTRQHDHGM5ehC8tUw5g1fCBQ4aaE792rWBFrjK")) thenReturn Seq(
+        fakeBox2LessTokens,
+        fakeBox1ExactTokensWrongAmount
+      )
       val result = new compiler.TxBuilder(explorer)
         .compile(
           tokenFilterProtocol.copy(
@@ -201,7 +214,10 @@ class MatchingSpec extends WordSpec with MockitoSugar with Matchers with TraitTo
 
     "reject if invalid amount in Optional input containing a target used in a non-Optional output" in new TokenMocks {
       when(explorer.getBoxById("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea")) thenReturn fakeBox0ExactTokens
-      when(explorer.getUnspentBoxes("9f5ZKbECVTm25JTRQHDHGM5ehC8tUw5g1fCBQ4aaE792rWBFrjK")) thenReturn Seq(fakeBox2LessTokens, fakeBox1ExactTokensWrongAmount)
+      when(explorer.getUnspentBoxes("9f5ZKbECVTm25JTRQHDHGM5ehC8tUw5g1fCBQ4aaE792rWBFrjK")) thenReturn Seq(
+        fakeBox2LessTokens,
+        fakeBox1ExactTokensWrongAmount
+      )
       the[Exception] thrownBy new compiler.TxBuilder(explorer)
         .compile(
           tokenFilterProtocol.copy(
@@ -221,7 +237,10 @@ class MatchingSpec extends WordSpec with MockitoSugar with Matchers with TraitTo
 
     "accept if invalid amount in Optional input containing a target used in an Optional output" in new TokenMocks {
       when(explorer.getBoxById("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea")) thenReturn fakeBox0ExactTokens
-      when(explorer.getUnspentBoxes("9f5ZKbECVTm25JTRQHDHGM5ehC8tUw5g1fCBQ4aaE792rWBFrjK")) thenReturn Seq(fakeBox2LessTokens, fakeBox1ExactTokensWrongAmount)
+      when(explorer.getUnspentBoxes("9f5ZKbECVTm25JTRQHDHGM5ehC8tUw5g1fCBQ4aaE792rWBFrjK")) thenReturn Seq(
+        fakeBox2LessTokens,
+        fakeBox1ExactTokensWrongAmount
+      )
       val result = new compiler.TxBuilder(explorer)
         .compile(
           tokenFilterProtocol.copy(
@@ -269,8 +288,12 @@ class MatchingSpec extends WordSpec with MockitoSugar with Matchers with TraitTo
     "select boxes with extra tokens and no Strict for input 0" in new TokenMocks {
       when(explorer.getBoxById("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea")) thenReturn fakeBox0ExtraTokens
       when(explorer.getUnspentBoxes("9f5ZKbECVTm25JTRQHDHGM5ehC8tUw5g1fCBQ4aaE792rWBFrjK")) thenReturn Seq(fakeBox1ExactTokens, fakeBox2LessTokens)
-      val result = new compiler.TxBuilder(explorer).compile(tokenFilterProtocol.copy(inputs = Seq(tokenFilterProtocol.inputs(0).copy(options = None), tokenFilterProtocol.inputs(1))))
-      result.inputBoxIds shouldBe Seq("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", "af0e35e1cf5a8890d70cef498c996dcd3e7658cfadd37695425032d4f8327d8a")
+      val result = new compiler.TxBuilder(explorer)
+        .compile(tokenFilterProtocol.copy(inputs = Seq(tokenFilterProtocol.inputs(0).copy(options = None), tokenFilterProtocol.inputs(1))))
+      result.inputBoxIds shouldBe Seq(
+        "dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea",
+        "af0e35e1cf5a8890d70cef498c996dcd3e7658cfadd37695425032d4f8327d8a"
+      )
     }
 
     "reject boxes with extra tokens and Strict for input 1" in new TokenMocks {
@@ -282,15 +305,22 @@ class MatchingSpec extends WordSpec with MockitoSugar with Matchers with TraitTo
     "select boxes with extra tokens and no Strict for input 1" in new TokenMocks {
       when(explorer.getBoxById("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea")) thenReturn fakeBox0ExactTokens
       when(explorer.getUnspentBoxes("9f5ZKbECVTm25JTRQHDHGM5ehC8tUw5g1fCBQ4aaE792rWBFrjK")) thenReturn Seq(fakeBox2LessTokens, fakeBox1ExtraTokens)
-      val result = new compiler.TxBuilder(explorer).compile(tokenFilterProtocol.copy(inputs = Seq(tokenFilterProtocol.inputs(0), tokenFilterProtocol.inputs(1).copy(options = None))))
-      result.inputBoxIds shouldBe Seq("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", "af0e35e1cf5a8890d70cef498c996dcd3e7658cfadd37695425032d4f8327d8a")
+      val result = new compiler.TxBuilder(explorer)
+        .compile(tokenFilterProtocol.copy(inputs = Seq(tokenFilterProtocol.inputs(0), tokenFilterProtocol.inputs(1).copy(options = None))))
+      result.inputBoxIds shouldBe Seq(
+        "dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea",
+        "af0e35e1cf5a8890d70cef498c996dcd3e7658cfadd37695425032d4f8327d8a"
+      )
     }
 
     "select boxes with exact tokens in both inputs and Strict option for both inputs" in new TokenMocks {
       when(explorer.getBoxById("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea")) thenReturn fakeBox0ExactTokens
       when(explorer.getUnspentBoxes("9f5ZKbECVTm25JTRQHDHGM5ehC8tUw5g1fCBQ4aaE792rWBFrjK")) thenReturn Seq(fakeBox1ExactTokens, fakeBox2ExactTokens)
       val result = new compiler.TxBuilder(explorer).compile(tokenFilterProtocol)
-      result.inputBoxIds shouldBe Seq("dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea", "af0e35e1cf5a8890d70cef498c996dcd3e7658cfadd37695425032d4f8327d8a")
+      result.inputBoxIds shouldBe Seq(
+        "dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea",
+        "af0e35e1cf5a8890d70cef498c996dcd3e7658cfadd37695425032d4f8327d8a"
+      )
     }
 
     "reject if post-condition fails" in new TokenMocks {
@@ -333,18 +363,20 @@ class MatchingSpec extends WordSpec with MockitoSugar with Matchers with TraitTo
       timestampProtocol.inputs(0).options shouldBe Some(Set(Strict))
 
       when(explorer.getBoxById("506dfb0a34d44f2baef77d99f9da03b1f122bdc4c7c31791a0c706e23f1207e7")) thenReturn fakeDataInputBox
-      when(explorer.getUnspentBoxes(
-        "2z93aPPTpVrZJHkQN54V7PatEfg3Ac1zKesFxUz8TGGZwPT4Rr5q6tBwsjEjounQU4KNZVqbFAUsCNipEKZmMdx2WTqFEyUURcZCW2CrSqKJ8YNtSVDGm7eHcrbPki9VRsyGpnpEQvirpz6GKZgghcTRDwyp1XtuXoG7XWPC4bT1U53LhiM3exE2iUDgDkme2e5hx9dMyBUi9TSNLNY1oPy2MjJ5seYmGuXCTRPLqrsi")) thenReturn Seq(
-        fakeEmissionBoxLessTokens,
-        fakeEmissionBoxExtraTokens,
-        fakeEmissionBoxExactTokens)
+      when(
+        explorer.getUnspentBoxes(
+          "2z93aPPTpVrZJHkQN54V7PatEfg3Ac1zKesFxUz8TGGZwPT4Rr5q6tBwsjEjounQU4KNZVqbFAUsCNipEKZmMdx2WTqFEyUURcZCW2CrSqKJ8YNtSVDGm7eHcrbPki9VRsyGpnpEQvirpz6GKZgghcTRDwyp1XtuXoG7XWPC4bT1U53LhiM3exE2iUDgDkme2e5hx9dMyBUi9TSNLNY1oPy2MjJ5seYmGuXCTRPLqrsi"
+        )
+      ) thenReturn Seq(fakeEmissionBoxLessTokens, fakeEmissionBoxExtraTokens, fakeEmissionBoxExactTokens)
 
       val result = new TxBuilder(explorer).compile(timestampProtocol)
 
       result.dataInputBoxIds shouldBe Seq("506dfb0a34d44f2baef77d99f9da03b1f122bdc4c7c31791a0c706e23f1207e7")
       result.inputBoxIds shouldBe Seq("43b0c3add1fde20244a3467798a777684f9234d1f56f31ad01a297c86c6d40c7")
       val outputs = result.outputs
-      outputs(0).address shouldBe "2z93aPPTpVrZJHkQN54V7PatEfg3Ac1zKesFxUz8TGGZwPT4Rr5q6tBwsjEjounQU4KNZVqbFAUsCNipEKZmMdx2WTqFEyUURcZCW2CrSqKJ8YNtSVDGm7eHcrbPki9VRsyGpnpEQvirpz6GKZgghcTRDwyp1XtuXoG7XWPC4bT1U53LhiM3exE2iUDgDkme2e5hx9dMyBUi9TSNLNY1oPy2MjJ5seYmGuXCTRPLqrsi"
+      outputs(
+        0
+      ).address shouldBe "2z93aPPTpVrZJHkQN54V7PatEfg3Ac1zKesFxUz8TGGZwPT4Rr5q6tBwsjEjounQU4KNZVqbFAUsCNipEKZmMdx2WTqFEyUURcZCW2CrSqKJ8YNtSVDGm7eHcrbPki9VRsyGpnpEQvirpz6GKZgghcTRDwyp1XtuXoG7XWPC4bT1U53LhiM3exE2iUDgDkme2e5hx9dMyBUi9TSNLNY1oPy2MjJ5seYmGuXCTRPLqrsi"
       outputs(0).tokens(0)._1 shouldBe "dbea46d988e86b1e60181b69936a3b927c3a4871aa6ed5258d3e4df155750bea"
       outputs(0).tokens(0)._2 shouldBe 21
       outputs(0).value shouldBe 3300000
@@ -364,10 +396,11 @@ class MatchingSpec extends WordSpec with MockitoSugar with Matchers with TraitTo
       timestampProtocol.inputs(0).options shouldBe Some(Set(Strict))
 
       when(explorer.getBoxById("506dfb0a34d44f2baef77d99f9da03b1f122bdc4c7c31791a0c706e23f1207e7")) thenReturn fakeDataInputBox
-      when(explorer.getUnspentBoxes(
-        "2z93aPPTpVrZJHkQN54V7PatEfg3Ac1zKesFxUz8TGGZwPT4Rr5q6tBwsjEjounQU4KNZVqbFAUsCNipEKZmMdx2WTqFEyUURcZCW2CrSqKJ8YNtSVDGm7eHcrbPki9VRsyGpnpEQvirpz6GKZgghcTRDwyp1XtuXoG7XWPC4bT1U53LhiM3exE2iUDgDkme2e5hx9dMyBUi9TSNLNY1oPy2MjJ5seYmGuXCTRPLqrsi")) thenReturn Seq(
-        fakeEmissionBoxLessTokens,
-        fakeEmissionBoxExtraTokens)
+      when(
+        explorer.getUnspentBoxes(
+          "2z93aPPTpVrZJHkQN54V7PatEfg3Ac1zKesFxUz8TGGZwPT4Rr5q6tBwsjEjounQU4KNZVqbFAUsCNipEKZmMdx2WTqFEyUURcZCW2CrSqKJ8YNtSVDGm7eHcrbPki9VRsyGpnpEQvirpz6GKZgghcTRDwyp1XtuXoG7XWPC4bT1U53LhiM3exE2iUDgDkme2e5hx9dMyBUi9TSNLNY1oPy2MjJ5seYmGuXCTRPLqrsi"
+        )
+      ) thenReturn Seq(fakeEmissionBoxLessTokens, fakeEmissionBoxExtraTokens)
 
       the[Exception] thrownBy txBuilder.compile(timestampProtocol) should have message "No box matched for input at index 0"
     }

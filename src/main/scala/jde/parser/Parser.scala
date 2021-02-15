@@ -1,29 +1,30 @@
 package jde.parser
 
 import kiosk.ergo.{KioskBox, KioskType}
-import jde.compiler.{CompileResult, model}
+import jde.compiler.{CompileResult, ReturnedValue, model}
 import jde.compiler.model.{MatchingOptions, _}
 import play.api.libs.json._
 
 object Parser {
   import scala.reflect.runtime.universe._
 
-  def checkedReads[T](underlyingReads: Reads[T])(implicit typeTag: TypeTag[T]): Reads[T] = new Reads[T] {
+  def checkedReads[T](underlyingReads: Reads[T])(implicit typeTag: TypeTag[T]): Reads[T] =
+    new Reads[T] {
 
-    def classFields[T: TypeTag]: Set[String] =
-      typeOf[T].members.collect {
-        case m: MethodSymbol if m.isCaseAccessor => m.name.decodedName.toString
-      }.toSet
+      def classFields[T: TypeTag]: Set[String] =
+        typeOf[T].members.collect {
+          case m: MethodSymbol if m.isCaseAccessor => m.name.decodedName.toString
+        }.toSet
 
-    def reads(json: JsValue): JsResult[T] = {
-      val caseClassFields = classFields[T]
-      json match {
-        case JsObject(fields) if (fields.keySet -- caseClassFields).nonEmpty =>
-          JsError(s"Unexpected fields provided: ${(fields.keySet -- caseClassFields).mkString(", ")}")
-        case _ => underlyingReads.reads(json)
+      def reads(json: JsValue): JsResult[T] = {
+        val caseClassFields = classFields[T]
+        json match {
+          case JsObject(fields) if (fields.keySet -- caseClassFields).nonEmpty =>
+            JsError(s"Unexpected fields provided: ${(fields.keySet -- caseClassFields).mkString(", ")}")
+          case _ => underlyingReads.reads(json)
+        }
       }
     }
-  }
 
   private implicit val readsInputOptions = new Reads[MatchingOptions.Options] {
     override def reads(json: JsValue): JsResult[MatchingOptions.Options] = JsSuccess(MatchingOptions.fromString(json.as[String]))
@@ -101,8 +102,14 @@ object Parser {
     override def writes(o: KioskType[_]): JsValue = JsString(o.hex)
   }
   private implicit val writesKioskBox = Json.writes[KioskBox]
+  private implicit val writesReturnedValue = new Writes[ReturnedValue] {
+    override def writes(o: ReturnedValue): JsValue = {
+      val (valueKey: String, valueVal: JsValue) =
+        if (o.values.size == 1) ("value", JsString(o.values.head.toString)) else ("value", Json.arr(o.values.map(_.toString)))
+      Json.obj("name" -> o.name, valueKey -> valueVal)
+    }
+  }
   implicit val writesCompileResult = Json.writes[CompileResult]
-
   def parse(string: String) = Json.parse(string).as[Protocol]
   def unparse(protocol: Protocol) = Json.toJson(protocol)
 }

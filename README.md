@@ -202,7 +202,7 @@ The following sections describe the syntax of the JSON scripting language in mor
 
 #### Protocol
 
-Each JSON script internally maps to a Scala object, an instance of the [**Protocol**](src/main/scala/jde/compiler/model/package.scala#L13-L30) class.
+Each JSON script internally maps to a Scala object, an instance of the [**Protocol**](src/main/scala/jde/compiler/model/package.scala#L13-L33) class.
 A *Protocol* is the highest level of abstraction in JDE and can be thought of as a sequence of instructions for interacting with a dApp.
 As can be seen from the source code, such an instance contains the following fields: 
 - Optional sequence of `Constant` declarations, using which we can encode arbitrary values into the script.
@@ -247,7 +247,7 @@ A box declaration can contain one or both of the following fields:
 - A `name` field (i.e., the declaration defines a new variable that will be referenced elsewhere), or
 - A `value` field (i.e., the declaration references another variable that is already defined elsewhere).
 
-Looking at the source of the [**Long**](src/main/scala/jde/compiler/model/package.scala#L86-L100) declaration, we see an additional field, [`filter`](src/main/scala/jde/compiler/model/Enums.scala#L18) (which cen be any of `Ge, Le, Gt, Lt, Ne`). 
+Looking at the source of the [**Long**](src/main/scala/jde/compiler/model/package.scala#L110-L125) declaration, we see an additional field, [`filter`](src/main/scala/jde/compiler/model/Enums.scala#L18) (which cen be any of `Ge, Le, Gt, Lt, Ne`). 
 This field is used for matching using inequalities (example, if the number of certain tokens is greater than some value).
 
 The following are some example declarations:
@@ -283,7 +283,7 @@ The following rule applies for each input:
 - It must have at least one of `boxId` or `address` declarations defined.
 
 #### Token rules
-A [**Token**](src/main/scala/jde/compiler/model/package.scala#L102-L106) is internally defined as 
+A [**Token**](src/main/scala/jde/compiler/model/package.scala#L127-L131) is internally defined as 
 `case class Token(index: Option[Int], id: Option[Id], amount: Option[Long])`. 
 The main rule to follow here is that if `index` is empty then `id` must be defined, and that too as a pointer (i.e., it must have a `value` field). 
 This is because the token index must be somehow determinable (either via an explicit `index` field or by matching the tokenId of a pointer.)
@@ -358,7 +358,7 @@ There may be cases where we need to map a single variable to mutiple objects. As
 box addresses oscillate between *Live-epoch* and *Epoch-preparation*. In this case, we would prefer to use a single
 variable `poolAddress` to handle both values.
 
-The [`Constant`](src/main/scala/jde/compiler/model/package.scala#L52-L62) declaration has the additional field `values` that allows us to
+The [`Constant`](src/main/scala/jde/compiler/model/package.scala#L133-L144) declaration has the additional field `values` that allows us to
 define multiple items, sort of like an array, but much more restricted.
 
 ```
@@ -408,11 +408,12 @@ Each input definition matches at most one input by default. If multiple inputs a
 ]
 ```
 
-Multiple objects defined via `Constant` or matched using the `Multi` option are internally stored as an instance of the [`Multiple`](src/main/scala/jde/compiler/package.scala#L31-L59) class.
+Multiple objects defined via `Constant` or matched using the `Multi` option are internally stored as an instance of the [`Multiple`](src/main/scala/jde/compiler/package.scala#L46-L74) class.
 
 #### Internals of JDE
 
-JDE is built on top of [Kiosk](https://github.com/scalahub/Kiosk) and each instance of a **Declaration** in JDE maps to an instance of some [`Kiosktype[_]`](https://github.com/scalahub/Kiosk/blob/master/src/main/scala/kiosk/ergo/package.scala#L32-L40). Speficially:
+JDE is built on top of [Kiosk](https://github.com/scalahub/Kiosk) and each instance of a **Declaration** in JDE maps to an 
+instance of some [`Kiosktype[_]`](https://github.com/scalahub/Kiosk/blob/master/src/main/scala/kiosk/ergo/package.scala#L32-L40). Speficially:
  
 - **Address** maps to `KioskErgoTree`.
 - **Id** maps to `KioskCollByte` of size 32.
@@ -422,7 +423,7 @@ JDE is built on top of [Kiosk](https://github.com/scalahub/Kiosk) and each insta
 #### Output of JDE
 
 The JDE compiler takes as input an instance of **Protocol** and outputs and instance of 
-[**CompileResult**](src/main/scala/jde/compiler/package.scala#L15), which contains the following details:
+[**CompileResult**](src/main/scala/jde/compiler/package.scala#L15-L23), which contains the following details:
 
 1. A sequence of box ids called `dataInputBoxIds` to use as data inputs.
 2. A sequence of box ids called `inputBoxIds` to use as inputs. 

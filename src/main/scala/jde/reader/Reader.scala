@@ -42,7 +42,8 @@ class Reader(explorer: Explorer)(implicit dictionary: Dictionary) {
 
   private def filterByRegister(onChainBoxes: Seq[OnChainBox], register: Register): Seq[OnChainBox] = {
     val index: Int = RegNum.getIndex(register.num)
-    val filteredByType: Seq[OnChainBox] = onChainBoxes.filter(onChainBox => onChainBox.registers.size > index && DataType.isValid(onChainBox.registers(index), register.`type`))
+    val filteredByType: Seq[OnChainBox] =
+      onChainBoxes.filter(onChainBox => onChainBox.registers.size > index && DataType.isValid(onChainBox.registers(index), register.`type`))
 
     register.value.fold(filteredByType) { _ =>
       val expected: Multiple[KioskType[_]] = register.getValue
@@ -76,7 +77,9 @@ class Reader(explorer: Explorer)(implicit dictionary: Dictionary) {
       case (Some(index), Some(_)) =>
         val expectedIds: Seq[String] = tokenId.getValue.map(_.toString).seq
         tokenBoxes
-          .filter(tokenBox => expectedIds.contains(tokenBox.onChainBox.stringTokenIds(index)) && matches(tokenBox.onChainBox.tokenAmounts(index), amount))
+          .filter(tokenBox =>
+            expectedIds.contains(tokenBox.onChainBox.stringTokenIds(index)) && matches(tokenBox.onChainBox.tokenAmounts(index), amount)
+          )
           .map(box => box.copy(foundIds = box.foundIds ++ box.onChainBox.stringTokenIds.take(index + 1)))
       case (Some(index), None) =>
         tokenBoxes
@@ -85,8 +88,8 @@ class Reader(explorer: Explorer)(implicit dictionary: Dictionary) {
       case (None, Some(_)) =>
         val expectedIds: Seq[String] = tokenId.getValue.map(_.toString).seq
         def findToken(tokenBox: TokenBox) = {
-          tokenBox -> tokenBox.onChainBox.stringTokenIds.indices.find(
-            index => expectedIds.contains(tokenBox.onChainBox.stringTokenIds(index)) && matches(tokenBox.onChainBox.tokenAmounts(index), amount)
+          tokenBox -> tokenBox.onChainBox.stringTokenIds.indices.find(index =>
+            expectedIds.contains(tokenBox.onChainBox.stringTokenIds(index)) && matches(tokenBox.onChainBox.tokenAmounts(index), amount)
           )
         }
 

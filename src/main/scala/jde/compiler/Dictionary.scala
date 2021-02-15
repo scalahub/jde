@@ -47,13 +47,17 @@ class Dictionary(currentHeight: Int) {
 
   private[compiler] def getDeclaration(name: String) = dict(name).declaration
 
+  private[compiler] def getAllNames = dict.keys.toSeq
+
   private def resolve(name: String, `type`: DataType.Type, stack: Seq[String]): Unit = {
     require(`type` != DataType.Unknown)
     dict.get(name) match {
       case Some(d) if Seq(`type`, DataType.Unknown) contains d.declaration.`type` =>
         if (d.isUnresolved) {
           dict -= name // remove temporarily
-          lazyRefs(name).foreach(ref => resolve(ref.name, if (ref.`type` == DataType.Unknown) `type` else ref.`type`, stack :+ d.declaration.toString))
+          lazyRefs(name).foreach(ref =>
+            resolve(ref.name, if (ref.`type` == DataType.Unknown) `type` else ref.`type`, stack :+ d.declaration.toString)
+          )
           if (d.declaration.`type` == DataType.Unknown) d.declaration.updateType(`type`)
           dict += name -> d.copy(isUnresolved = false)
         }
@@ -101,14 +105,23 @@ class Dictionary(currentHeight: Int) {
     }
   }
 
-  private def getBoxes(inputType: InputType.Type, auxInputs: Seq[(UUID, Multiple[OnChainBox])], dataInputs: Seq[(UUID, Multiple[OnChainBox])], inputs: Seq[(UUID, Multiple[OnChainBox])]) =
+  private def getBoxes(
+      inputType: InputType.Type,
+      auxInputs: Seq[(UUID, Multiple[OnChainBox])],
+      dataInputs: Seq[(UUID, Multiple[OnChainBox])],
+      inputs: Seq[(UUID, Multiple[OnChainBox])]
+  ) =
     inputType match {
       case InputType.Aux  => auxInputs
       case InputType.Data => dataInputs
       case InputType.Code => inputs
     }
 
-  def addOnChainDeclaration(variable: Variable, inputType: InputType.Type, mapping: Map[UUID, Multiple[OnChainBox]] => Multiple[KioskType[_]]): Unit = {
+  def addOnChainDeclaration(
+      variable: Variable,
+      inputType: InputType.Type,
+      mapping: Map[UUID, Multiple[OnChainBox]] => Multiple[KioskType[_]]
+  ): Unit = {
     addDeclaration(OnChain(variable.name, variable.`type`))
     addOnChainBoxMapping(variable.name, { case (aux, data, code) => mapping(getBoxes(inputType, aux, data, code).toMap) })
   }

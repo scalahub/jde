@@ -2,6 +2,7 @@ package jde.compiler
 
 import kiosk.explorer.Explorer
 import jde.compiler.model._
+import kiosk.ergo
 
 class TxBuilder(explorer: Explorer) {
   def compile(protocol: Protocol) = {
@@ -16,6 +17,12 @@ class TxBuilder(explorer: Explorer) {
     optSeq(protocol.postConditions).foreach(_.validate)
     // Step 5. build outputs
     val outputs = (new Builder).buildOutputs(protocol)
+    // Step 6. compute values to return
+    val returns = optSeq(protocol.returns).map { name =>
+      val declaration: Declaration = dictionary.getDeclaration(name)
+      val values: Seq[ergo.KioskType[_]] = declaration.getValue.seq
+      ReturnedValue(name, declaration.`type`, values)
+    }
     // Return final result
     CompileResult(
       dictionary.getDataInputBoxIds,
@@ -23,7 +30,8 @@ class TxBuilder(explorer: Explorer) {
       dictionary.getInputNanoErgs,
       dictionary.getInputTokens,
       outputs,
-      protocol.fee
+      protocol.fee,
+      returns
     )
   }
 }

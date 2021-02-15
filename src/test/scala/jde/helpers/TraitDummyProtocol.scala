@@ -1,6 +1,8 @@
 package jde.helpers
 
 import jde.compiler.model._
+import jde.parser.Parser
+import kiosk.ergo.usingSource
 
 trait TraitDummyProtocol {
   object DummyDeclarations {
@@ -8,7 +10,8 @@ trait TraitDummyProtocol {
     val myInt = Constant("myInt", DataType.Int, Some("1234"), None)
     val myCollByte = Constant("myCollByte", DataType.CollByte, Some("506dfb0a34d44f2baef77d99f9da03b1f122bdc4c7c31791a0c706e23f1207e7"), None)
     val myTokenId = Constant("myTokenId", DataType.CollByte, Some("ae57e4add0f181f5d1e8fd462969e4cc04f13b0da183676660d280ad0b64563f"), None)
-    val myGroupElement = Constant("myGroupElement", DataType.GroupElement, Some("028182257d34ec7dbfedee9e857aadeb8ce02bb0c757871871cff378bb52107c67"), None)
+    val myGroupElement =
+      Constant("myGroupElement", DataType.GroupElement, Some("028182257d34ec7dbfedee9e857aadeb8ce02bb0c757871871cff378bb52107c67"), None)
     val myErgoTree1 = Constant("myErgoTree1", DataType.ErgoTree, Some("10010101D17300"), None)
     val myAddress = Constant("myAddress", DataType.Address, Some("9f5ZKbECVTm25JTRQHDHGM5ehC8tUw5g1fCBQ4aaE792rWBFrjK"), None)
 
@@ -96,6 +99,71 @@ trait TraitDummyProtocol {
     binaryOps,
     unaryOps,
     branches = None,
-    postConditions = None
+    postConditions = None,
+    returns = Some(
+      Seq(
+        "myRegister4",
+        "myCollByte2",
+        "someLong3",
+        "myLong4",
+        "myCollByte",
+        "myLong7",
+        "myRegister1",
+        "myToken1Id",
+        "myLong6",
+        "myAddressName",
+        "myErgoTree1",
+        "randomName",
+        "myRegister3",
+        "myInt",
+        "myLong3",
+        "input1NanoErgs",
+        "myGroupElement",
+        "someLong1",
+        "myLong5",
+        "myLong8",
+        "myTokenId",
+        "myRegister2",
+        "myIntToLong",
+        "myLong2",
+        "myAddress",
+        "HEIGHT",
+        "unreferencedToken2Id",
+        "myErgoTree2",
+        "myLong1",
+        "myRegister4",
+        "myCollByte2",
+        "someLong3",
+        "myLong4",
+        "myCollByte",
+        "myLong7",
+        "myRegister1",
+        "myToken1Id",
+        "myLong6",
+        "myAddressName",
+        "myErgoTree1",
+        "randomName",
+        "myRegister3",
+        "myInt",
+        "myLong3",
+        "input1NanoErgs",
+        "myGroupElement",
+        "someLong1",
+        "myLong5",
+        "myLong8",
+        "myTokenId",
+        "myRegister2",
+        "myIntToLong",
+        "myLong2",
+        "myAddress",
+        "HEIGHT",
+        "unreferencedToken2Id",
+        "myErgoTree2",
+        "myLong1"
+      )
+    )
   )
+
+  val dummyProtocolSource = usingSource(scala.io.Source.fromFile("src/test/resources/dummy-protocol.json"))(_.getLines.mkString)
+  val dummyProtocolFromJson = Parser.parse(dummyProtocolSource)
 }

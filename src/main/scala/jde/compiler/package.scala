@@ -12,7 +12,17 @@ package object compiler {
 
   def tree2str(ergoTree: KioskErgoTree): String = addr2Str(tree2addr(ergoTree.value))
 
-  case class CompileResult(dataInputBoxIds: Seq[String], inputBoxIds: Seq[String], inputNanoErgs: Long, inputTokens: Seq[(String, Long)], outputs: Seq[KioskBox], fee: Option[Long])
+  case class CompileResult(
+      dataInputBoxIds: Seq[String],
+      inputBoxIds: Seq[String],
+      inputNanoErgs: Long,
+      inputTokens: Seq[(String, Long)],
+      outputs: Seq[KioskBox],
+      fee: Option[Long],
+      returned: Seq[ReturnedValue]
+  )
+
+  case class ReturnedValue(name: String, `type`: DataType.Type, values: Seq[KioskType[_]])
 
   case class DictionaryObject(isUnresolved: Boolean, declaration: Declaration)
 
@@ -22,7 +32,14 @@ package object compiler {
 
   def randId = UUID.randomUUID.toString
 
-  case class OnChainBox(boxId: KioskCollByte, address: KioskErgoTree, nanoErgs: KioskLong, tokenIds: Seq[KioskCollByte], tokenAmounts: Seq[KioskLong], registers: Seq[KioskType[_]]) {
+  case class OnChainBox(
+      boxId: KioskCollByte,
+      address: KioskErgoTree,
+      nanoErgs: KioskLong,
+      tokenIds: Seq[KioskCollByte],
+      tokenAmounts: Seq[KioskLong],
+      registers: Seq[KioskType[_]]
+  ) {
     lazy val stringTokenIds = tokenIds.map(_.toString)
     lazy val stringBoxId = boxId.toString
     require(tokenIds.size == tokenAmounts.size, s"tokenIds.size (${tokenIds.size}) != tokenAmounts.size (${tokenAmounts.size})")

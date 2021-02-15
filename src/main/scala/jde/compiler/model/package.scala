@@ -10,26 +10,36 @@ import java.util.UUID
 import scala.util.Try
 
 package object model {
-  case class Protocol(constants: Option[Seq[Constant]],
-                      // on-chain
-                      auxInputs: Option[Seq[Input]], // for use in computation without having to add to data-inputs (or inputs)
-                      dataInputs: Option[Seq[Input]],
-                      inputs: Seq[Input],
-                      // to-create
-                      outputs: Seq[Output],
-                      fee: Option[scala.Long],
-                      // operations
-                      binaryOps: Option[Seq[BinaryOp]],
-                      unaryOps: Option[Seq[UnaryOp]],
-                      branches: Option[Seq[Branch]],
-                      postConditions: Option[Seq[PostCondition]]) {
+  case class Protocol(
+      constants: Option[Seq[Constant]],
+      // on-chain
+      auxInputs: Option[Seq[Input]], // for use in computation without having to add to data-inputs (or inputs)
+      dataInputs: Option[Seq[Input]],
+      inputs: Seq[Input],
+      // to-create
+      outputs: Seq[Output],
+      fee: Option[scala.Long],
+      // operations
+      binaryOps: Option[Seq[BinaryOp]],
+      unaryOps: Option[Seq[UnaryOp]],
+      branches: Option[Seq[Branch]],
+      postConditions: Option[Seq[PostCondition]],
+      returns: Option[Seq[String]]
+  ) {
     def withUuid(input: Input): (Input, UUID) = input -> UUID.randomUUID
     private[compiler] lazy val auxInputUuids: Option[Seq[(Input, UUID)]] = auxInputs.map(_.map(withUuid))
     private[compiler] lazy val dataInputUuids: Option[Seq[(Input, UUID)]] = dataInputs.map(_.map(withUuid))
     private[compiler] lazy val inputUuids: Seq[(Input, UUID)] = inputs.map(withUuid)
   }
 
-  case class Input(id: Option[Id], address: Option[Address], registers: Option[Seq[Register]], tokens: Option[Seq[Token]], nanoErgs: Option[Long], options: Option[Set[MatchingOptions.Options]]) {
+  case class Input(
+      id: Option[Id],
+      address: Option[Address],
+      registers: Option[Seq[Register]],
+      tokens: Option[Seq[Token]],
+      nanoErgs: Option[Long],
+      options: Option[Set[MatchingOptions.Options]]
+  ) {
     atLeastOne(this)("id", "address")(id, address)
     private lazy val inputOptions: Set[Options] = options.getOrElse(Set.empty)
     lazy val strict: Boolean = inputOptions.contains(MatchingOptions.Strict) // applies to token matching only
@@ -37,10 +47,21 @@ package object model {
     lazy val optional: Boolean = inputOptions.contains(MatchingOptions.Optional)
   }
 
-  case class Output(address: Address, registers: Option[Seq[Register]], tokens: Option[Seq[Token]], nanoErgs: Long, options: Option[Set[MatchingOptions.Options]]) {
+  case class Output(
+      address: Address,
+      registers: Option[Seq[Register]],
+      tokens: Option[Seq[Token]],
+      nanoErgs: Long,
+      options: Option[Set[MatchingOptions.Options]]
+  ) {
     optSeq(tokens).foreach(token => requireDefined(token.index -> "token index", token.id -> "token.id", token.amount -> "token amount"))
     optSeq(tokens).foreach(token =>
-      for { id <- token.id; amount <- token.amount } requireEmpty(id.name -> "Output token.id.name", amount.name -> "Output token.amount.name", amount.filter -> "Output token.amount.filter"))
+      for { id <- token.id; amount <- token.amount } requireEmpty(
+        id.name -> "Output token.id.name",
+        amount.name -> "Output token.amount.name",
+        amount.filter -> "Output token.amount.filter"
+      )
+    )
     requireEmpty(optSeq(registers).map(_.name -> "Output register.name"): _*)
     requireEmpty(address.name -> "Output address.name", nanoErgs.name -> "Output nanoErgs.name", nanoErgs.filter -> "Output nanoErgs.filter")
     private lazy val outputOptions: Set[Options] = options.getOrElse(Set.empty)
@@ -58,7 +79,8 @@ package object model {
     override lazy val canPointToOnChain: Boolean = true
     atLeastOne(this)("name", "value")(name, value)
     override def getValue(implicit dictionary: Dictionary): Multiple[KioskErgoTree] = to[KioskErgoTree](super.getValue)
-    def getTargets(implicit dictionary: Dictionary): Seq[KioskErgoTree] = pointerNames.flatMap(pointerName => to[KioskErgoTree](dictionary.getDeclaration(pointerName).getValue).seq)
+    def getTargets(implicit dictionary: Dictionary): Seq[KioskErgoTree] =
+      pointerNames.flatMap(pointerName => to[KioskErgoTree](dictionary.getDeclaration(pointerName).getValue).seq)
   }
 
   case class Register(name: Option[String], value: Option[String], num: Num, var `type`: Type) extends Declaration {
@@ -78,7 +100,9 @@ package object model {
     override lazy val canPointToOnChain: Boolean = true
     override def getValue(implicit dictionary: Dictionary): Multiple[KioskCollByte] = {
       val kioskCollBytes = to[KioskCollByte](super.getValue)
-      kioskCollBytes.foreach(kioskCollByte => require(kioskCollByte.arrayBytes.length == 32, s"Id $this (${kioskCollByte.hex}) size (${kioskCollByte.arrayBytes.length}) != 32"))
+      kioskCollBytes.foreach(kioskCollByte =>
+        require(kioskCollByte.arrayBytes.length == 32, s"Id $this (${kioskCollByte.hex}) size (${kioskCollByte.arrayBytes.length}) != 32")
+      )
       kioskCollBytes
     }
   }
@@ -91,7 +115,8 @@ package object model {
     override lazy val isLazy = false
     override lazy val canPointToOnChain: Boolean = true
     lazy val filterOp: Op = filter.getOrElse(FilterOp.Eq)
-    def getTargets(implicit dictionary: Dictionary): Seq[KioskLong] = value.fold(Seq[KioskLong]())(pointer => to[KioskLong](dictionary.getDeclaration(pointer).getValue).seq)
+    def getTargets(implicit dictionary: Dictionary): Seq[KioskLong] =
+      value.fold(Seq[KioskLong]())(pointer => to[KioskLong](dictionary.getDeclaration(pointer).getValue).seq)
     override def getValue(implicit dictionary: Dictionary): Multiple[KioskLong] = to[KioskLong](super.getValue)
     if (filter.nonEmpty && value.isEmpty) throw new Exception(s"Value cannot be empty if filter is defined")
     if (filter.contains(FilterOp.Eq)) throw new Exception(s"Filter cannot be Eq")
@@ -110,7 +135,8 @@ package object model {
     override lazy val pointerNames: Seq[String] = Nil
     override lazy val pointerTypes: Seq[Type] = Nil
     override lazy val isLazy = true
-    override def getValue(implicit dictionary: Dictionary): Multiple[KioskType[_]] = Multiple((value.toSeq ++ optSeq(values)).map(DataType.getValue(_, `type`)): _*)
+    override def getValue(implicit dictionary: Dictionary): Multiple[KioskType[_]] =
+      Multiple((value.toSeq ++ optSeq(values)).map(DataType.getValue(_, `type`)): _*)
     override lazy val canPointToOnChain: Boolean = false
     exactlyOne(this)("value", "values")(value, values)
     values.map(strings => require(strings.size > 1, s"At least two constants must be defined using 'values'. For single constant, use 'value'"))
@@ -125,7 +151,9 @@ package object model {
     override lazy val isLazy = true
     override lazy val canPointToOnChain: Boolean = false
     override def getValue(implicit dictionary: Dictionary): Multiple[KioskType[_]] = {
-      Try(getMultiPairs(first, second)).fold(ex => throw new Exception(s"Error evaluating binary op $op ($name)").initCause(ex), pairs => pairs).map(BinaryOperator.operate(op, _))
+      Try(getMultiPairs(first, second))
+        .fold(ex => throw new Exception(s"Error evaluating binary op $op ($name)").initCause(ex), pairs => pairs)
+        .map(BinaryOperator.operate(op, _))
     }
   }
 
@@ -137,7 +165,8 @@ package object model {
     override lazy val pointerTypes = Seq(types.from)
     override lazy val isLazy = true
     override lazy val canPointToOnChain: Boolean = false
-    override def getValue(implicit dictionary: Dictionary): Multiple[KioskType[_]] = UnaryOperator.operate(op, dictionary.getDeclaration(from).getValue, `type`)
+    override def getValue(implicit dictionary: Dictionary): Multiple[KioskType[_]] =
+      UnaryOperator.operate(op, dictionary.getDeclaration(from).getValue, `type`)
   }
 
   case class Condition(first: String, second: String, op: FilterOp.Op) {
@@ -170,7 +199,8 @@ package object model {
     override protected lazy val pointerTypes: Seq[Type] = pointerNames.map(_ => DataType.Unknown)
     override lazy val isLazy: Boolean = true
     override lazy val canPointToOnChain: Boolean = false
-    override def getValue(implicit dictionary: Dictionary): Multiple[KioskType[_]] = (if (condition.evaluate) dictionary.getDeclaration(ifTrue) else dictionary.getDeclaration(ifFalse)).getValue
+    override def getValue(implicit dictionary: Dictionary): Multiple[KioskType[_]] =
+      (if (condition.evaluate) dictionary.getDeclaration(ifTrue) else dictionary.getDeclaration(ifFalse)).getValue
   }
 
   case class PostCondition(first: String, second: String, op: FilterOp.Op) extends Declaration {
