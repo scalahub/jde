@@ -2,8 +2,8 @@ package jde
 
 import kiosk.encoding.ScalaErgoConverters
 import kiosk.encoding.ScalaErgoConverters.{getAddressFromErgoTree => tree2addr, getStringFromAddress => addr2Str}
-import kiosk.ergo.{KioskBox, KioskCollByte, KioskErgoTree, KioskLong, KioskType, StringToBetterString}
-import jde.compiler.model.{Constant, DataType}
+import kiosk.ergo.{DataType, KioskBox, KioskCollByte, KioskErgoTree, KioskLong, KioskType, StringToBetterString}
+import jde.compiler.model.Constant
 
 import java.util.UUID
 import scala.util.Try

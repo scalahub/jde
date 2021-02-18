@@ -2,7 +2,7 @@ package jde.helpers
 
 import jde.compiler.model._
 import jde.parser.Parser
-import kiosk.ergo.usingSource
+import kiosk.ergo.{DataType, usingSource}
 
 trait TraitDummyProtocol {
   object DummyDeclarations {
@@ -93,8 +93,8 @@ trait TraitDummyProtocol {
     constants,
     auxInputs = None,
     dataInputs = Some(Seq(myInput1, myInput2)),
-    inputs = Seq(myInput3),
-    outputs = Nil,
+    inputs = Some(Seq(myInput3)),
+    outputs = None,
     fee = Some(10000L),
     binaryOps,
     unaryOps,

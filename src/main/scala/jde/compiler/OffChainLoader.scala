@@ -18,11 +18,11 @@ class OffChainLoader(implicit dictionary: Dictionary) {
       case ((input, uuid), index) =>
         loadInput(input)(uuid, index, InputType.Data)
     }
-    p.inputUuids.zipWithIndex.foreach {
+    optSeq(p.inputUuids).zipWithIndex.foreach {
       case ((input, uuid), index) =>
         loadInput(input)(uuid, index, InputType.Code)
     }
-    p.outputs.foreach(loadOutput)
+    optSeq(p.outputs).foreach(loadOutput)
   }
 
   private def loadOutput(output: Output): Unit = {
@@ -39,17 +39,11 @@ class OffChainLoader(implicit dictionary: Dictionary) {
   private def noBoxError(implicit inputType: InputType.Type, inputIndex: Int) =
     throw new Exception(s"No $inputType-input matched at ${MatchingOptions.Optional} index $inputIndex when getting target")
 
-  private def getInput(mapping: Map[UUID, Multiple[OnChainBox]])(implicit
-      inputUuid: UUID,
-      inputType: InputType.Type,
-      inputIndex: Int
-  ): Multiple[OnChainBox] = mapping.getOrElse(inputUuid, noBoxError)
+  private def getInput(
+      mapping: Map[UUID, Multiple[OnChainBox]]
+  )(implicit inputUuid: UUID, inputType: InputType.Type, inputIndex: Int): Multiple[OnChainBox] = mapping.getOrElse(inputUuid, noBoxError)
 
-  private def loadInput(input: Input)(implicit
-      inputUuid: UUID,
-      inputIndex: Int,
-      inputType: InputType.Type
-  ): Unit = {
+  private def loadInput(input: Input)(implicit inputUuid: UUID, inputIndex: Int, inputType: InputType.Type): Unit = {
     input.id.foreach { id =>
       id.onChainVariable.foreach(dictionary.addOnChainDeclaration(_, inputType, getInput(_).map(_.boxId)))
       dictionary.addDeclarationLater(id)

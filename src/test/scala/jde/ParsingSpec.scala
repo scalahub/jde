@@ -2,9 +2,9 @@ package jde
 
 import kiosk.encoding.ScalaErgoConverters
 import kiosk.ergo
-import kiosk.ergo.{KioskErgoTree, KioskGroupElement}
+import kiosk.ergo.{DataType, KioskErgoTree, KioskGroupElement}
 import jde.compiler.model.BinaryOperator._
-import jde.compiler.model.{BinaryOp, Constant, DataType}
+import jde.compiler.model.{BinaryOp, Constant}
 import jde.compiler.{Dictionary, optSeq}
 import jde.helpers.{TraitDummyProtocol, TraitTimestamp, TraitTokenFilter}
 import jde.parser.Parser

@@ -1,6 +1,6 @@
 package jde.parser
 
-import kiosk.ergo.{KioskBox, KioskType}
+import kiosk.ergo.{DataType, KioskBox, KioskType}
 import jde.compiler.{CompileResult, ReturnedValue, model}
 import jde.compiler.model.{MatchingOptions, _}
 import play.api.libs.json._
@@ -102,7 +102,8 @@ object Parser {
     override def writes(o: KioskType[_]): JsValue = JsString(o.hex)
   }
   private implicit val writesKioskBox = Json.writes[KioskBox]
-  private implicit val writesReturnedValue = new Writes[ReturnedValue] {
+
+  implicit val writesReturnedValue = new Writes[ReturnedValue] {
     override def writes(o: ReturnedValue): JsValue = {
       val (valueKey: String, valueVal: JsValue) =
         if (o.values.size == 1) ("value", JsString(o.values.head.toString)) else ("value", Json.arr(o.values.map(_.toString)))

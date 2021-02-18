@@ -1,11 +1,11 @@
 package jde.compiler
 
 import kiosk.ergo
-import kiosk.ergo.{KioskBox, KioskType}
-import jde.compiler.model.{DataType, Output, Protocol, RegNum}
+import kiosk.ergo.{DataType, KioskBox, KioskType}
+import jde.compiler.model.{Output, Protocol, RegNum}
 
 class Builder(implicit dictionary: Dictionary) {
-  def buildOutputs(protocol: Protocol) = protocol.outputs.flatMap(createOutput).filter(_.value > 0)
+  def buildOutputs(protocol: Protocol) = optSeq(protocol.outputs).flatMap(createOutput).filter(_.value > 0)
 
   private def createOutput(output: Output): Seq[KioskBox] = {
     type OutputRegister = KioskType[_]
@@ -21,7 +21,9 @@ class Builder(implicit dictionary: Dictionary) {
           val regType: DataType.Type = register.`type`
 
           val values: Multiple[KioskType[_]] = register.getValue
-          values.foreach(value => require(DataType.isValid(value, regType), s"Invalid type ${value.typeName} for register ${register.num}. Expected $regType"))
+          values.foreach(value =>
+            require(DataType.isValid(value, regType), s"Invalid type ${value.typeName} for register ${register.num}. Expected $regType")
+          )
           (index, values)
         }
         .sortBy(_._1)
@@ -48,13 +50,16 @@ class Builder(implicit dictionary: Dictionary) {
         .map(_._2)
     )
 
-    val nanoErgs: Multiple[ergo.KioskLong] = output.nanoErgs.getValue.ensuring(_.forall(_.value > 0), s"One or more outputs will have non-positive nano-Ergs: $output")
+    val nanoErgs: Multiple[ergo.KioskLong] =
+      output.nanoErgs.getValue.ensuring(_.forall(_.value > 0), s"One or more outputs will have non-positive nano-Ergs: $output")
 
     val generatedOutputs = (addresses zip nanoErgs zip registers zip tokens).seq map {
-      case (((outputAddress, outputNanoErgs), outputRegisters), outputTokens) => KioskBox(outputAddress, outputNanoErgs.value, outputRegisters.toArray, outputTokens.toArray)
+      case (((outputAddress, outputNanoErgs), outputRegisters), outputTokens) =>
+        KioskBox(outputAddress, outputNanoErgs.value, outputRegisters.toArray, outputTokens.toArray)
     }
     val outputsToReturn = if (output.multi) generatedOutputs else generatedOutputs.take(1)
 
-    if (output.optional || outputsToReturn.nonEmpty) outputsToReturn else throw new Exception(s"Output declaration generated zero boxes (use 'Optional' flag to prevent this error): $output")
+    if (output.optional || outputsToReturn.nonEmpty) outputsToReturn
+    else throw new Exception(s"Output declaration generated zero boxes (use 'Optional' flag to prevent this error): $output")
   }
 }

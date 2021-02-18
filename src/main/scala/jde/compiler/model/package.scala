@@ -1,10 +1,10 @@
 package jde.compiler
 
-import kiosk.ergo.{KioskCollByte, KioskErgoTree, KioskInt, KioskLong, KioskType}
-import jde.compiler.model.DataType.Type
+import kiosk.ergo.{DataType, KioskCollByte, KioskErgoTree, KioskInt, KioskLong, KioskType}
 import jde.compiler.model.FilterOp.Op
 import jde.compiler.model.MatchingOptions.Options
 import jde.compiler.model.RegNum.Num
+import kiosk.ergo.DataType.Type
 
 import java.util.UUID
 import scala.util.Try
@@ -12,14 +12,11 @@ import scala.util.Try
 package object model {
   case class Protocol(
       constants: Option[Seq[Constant]],
-      // on-chain
-      auxInputs: Option[Seq[Input]], // for use in computation without having to add to data-inputs (or inputs)
+      auxInputs: Option[Seq[Input]],
       dataInputs: Option[Seq[Input]],
-      inputs: Seq[Input],
-      // to-create
-      outputs: Seq[Output],
+      inputs: Option[Seq[Input]],
+      outputs: Option[Seq[Output]],
       fee: Option[scala.Long],
-      // operations
       binaryOps: Option[Seq[BinaryOp]],
       unaryOps: Option[Seq[UnaryOp]],
       branches: Option[Seq[Branch]],
@@ -29,7 +26,7 @@ package object model {
     def withUuid(input: Input): (Input, UUID) = input -> UUID.randomUUID
     private[compiler] lazy val auxInputUuids: Option[Seq[(Input, UUID)]] = auxInputs.map(_.map(withUuid))
     private[compiler] lazy val dataInputUuids: Option[Seq[(Input, UUID)]] = dataInputs.map(_.map(withUuid))
-    private[compiler] lazy val inputUuids: Seq[(Input, UUID)] = inputs.map(withUuid)
+    private[compiler] lazy val inputUuids: Option[Seq[(Input, UUID)]] = inputs.map(_.map(withUuid))
   }
 
   case class Input(
@@ -55,13 +52,13 @@ package object model {
       options: Option[Set[MatchingOptions.Options]]
   ) {
     optSeq(tokens).foreach(token => requireDefined(token.index -> "token index", token.id -> "token.id", token.amount -> "token amount"))
-    optSeq(tokens).foreach(token =>
-      for { id <- token.id; amount <- token.amount } requireEmpty(
-        id.name -> "Output token.id.name",
-        amount.name -> "Output token.amount.name",
-        amount.filter -> "Output token.amount.filter"
-      )
-    )
+    optSeq(tokens).foreach(
+      token =>
+        for { id <- token.id; amount <- token.amount } requireEmpty(
+          id.name -> "Output token.id.name",
+          amount.name -> "Output token.amount.name",
+          amount.filter -> "Output token.amount.filter"
+      ))
     requireEmpty(optSeq(registers).map(_.name -> "Output register.name"): _*)
     requireEmpty(address.name -> "Output address.name", nanoErgs.name -> "Output nanoErgs.name", nanoErgs.filter -> "Output nanoErgs.filter")
     private lazy val outputOptions: Set[Options] = options.getOrElse(Set.empty)
@@ -100,9 +97,7 @@ package object model {
     override lazy val canPointToOnChain: Boolean = true
     override def getValue(implicit dictionary: Dictionary): Multiple[KioskCollByte] = {
       val kioskCollBytes = to[KioskCollByte](super.getValue)
-      kioskCollBytes.foreach(kioskCollByte =>
-        require(kioskCollByte.arrayBytes.length == 32, s"Id $this (${kioskCollByte.hex}) size (${kioskCollByte.arrayBytes.length}) != 32")
-      )
+      kioskCollBytes.foreach(kioskCollByte => require(kioskCollByte.arrayBytes.length == 32, s"Id $this (${kioskCollByte.hex}) size (${kioskCollByte.arrayBytes.length}) != 32"))
       kioskCollBytes
     }
   }

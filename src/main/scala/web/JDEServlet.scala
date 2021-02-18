@@ -7,7 +7,12 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest => HReq, HttpServletR
 class JDEServlet extends HttpServlet {
   override def doGet(hReq: HReq, hResp: HResp) = doPost(hReq, hResp)
   override def doPost(hReq: HReq, hResp: HResp) = {
-    val resp = compileFromSource(scala.io.Source.fromInputStream(hReq.getInputStream))
-    hResp.getWriter.print(resp)
+    try {
+      val resp = compileFromSource(scala.io.Source.fromInputStream(hReq.getInputStream))
+      hResp.getWriter.print(resp)
+    } catch {
+      case t: Throwable => hResp.sendError(400, t.getMessage)
+    }
+
   }
 }

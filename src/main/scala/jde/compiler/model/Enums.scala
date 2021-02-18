@@ -7,12 +7,6 @@ import jde.compiler.Multiple
 import kiosk.script.ScriptUtil
 import scorex.crypto.hash.Blake2b256
 
-abstract class MyEnum extends Enumeration {
-  def fromString(str: String): Value =
-    values.find(value => value.toString.equalsIgnoreCase(str)).getOrElse(throw new Exception(s"Invalid op $str. Permitted options are ${values.map(_.toString).reduceLeft(_ + ", " + _)}"))
-  def toString(op: Value): String = op.toString
-}
-
 object FilterOp extends MyEnum {
   type Op = Value
   val Eq, Le, Ge, Lt, Gt, Ne = Value
@@ -25,35 +19,6 @@ object FilterOp extends MyEnum {
       case (actual, required, Gt) if actual > required  => true
       case (actual, required, Ne) if actual != required => true
       case _                                            => false
-    }
-  }
-}
-
-object DataType extends MyEnum {
-  type Type = Value
-  val Long, Int, CollByte, GroupElement, ErgoTree, Address, Unknown = Value
-
-  def getValue(stringValue: String, `type`: DataType.Type): KioskType[_] = {
-    `type` match {
-      case Long         => KioskLong(stringValue.toLong)
-      case Int          => KioskInt(stringValue.toInt)
-      case GroupElement => KioskGroupElement(ScalaErgoConverters.stringToGroupElement(stringValue))
-      case CollByte     => KioskCollByte(stringValue.decodeHex)
-      case ErgoTree     => KioskErgoTree(ScalaErgoConverters.stringToErgoTree(stringValue))
-      case Address      => KioskErgoTree(ScalaErgoConverters.getAddressFromString(stringValue).script)
-      case any          => throw new Exception(s"Unknown type $any")
-    }
-  }
-
-  def isValid(value: KioskType[_], `type`: DataType.Type) = {
-    (`type`, value) match {
-      case (Long, _: KioskLong)                 => true
-      case (Int, _: KioskInt)                   => true
-      case (CollByte, _: KioskCollByte)         => true
-      case (GroupElement, _: KioskGroupElement) => true
-      case (ErgoTree, _: KioskErgoTree)         => true
-      case (Address, _: KioskErgoTree)          => true
-      case _                                    => false
     }
   }
 }

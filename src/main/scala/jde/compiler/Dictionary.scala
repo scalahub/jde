@@ -1,7 +1,7 @@
 package jde.compiler
 
-import kiosk.ergo.KioskType
-import jde.compiler.model.{DataType, InputType}
+import kiosk.ergo.{DataType, KioskType}
+import jde.compiler.model.InputType
 
 import java.util.UUID
 import scala.collection.mutable.{Map => MMap}

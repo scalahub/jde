@@ -21,7 +21,7 @@ class OnChainLoader(explorer: Explorer)(implicit dictionary: Dictionary) {
         if (!dataInput.optional && boxesToAdd.isEmpty) throw new Exception(s"No box matched for data-input at index $index")
         dictionary.addDataInput(boxesToAdd, uuid)
     }
-    protocol.inputUuids.zipWithIndex.foreach { // fetch input boxes from explorer and load into dictionary
+    optSeq(protocol.inputUuids).zipWithIndex.foreach { // fetch input boxes from explorer and load into dictionary
       case ((input, uuid), index) =>
         val boxes = reader.getBoxes(input, dictionary.getInputBoxIds)
 
