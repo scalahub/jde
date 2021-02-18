@@ -1,42 +1,32 @@
 {
   "constants": [
     {
-      "name": "scToken",
-      "type": "CollByte",
-      "value": "a908bf2be7e199014b45e421dc4adb846d8de95e37da87c7f97ac6fb8e863fa2"
-    },
-    {
-      "name": "rcToken",
-      "type": "CollByte",
-      "value": "b240daba6b5f9f9b6d4e6d7fc8b7c0423f1dfa28a883ec626a18b69be6c7590e"
-    },
-    {
       "name": "oraclePoolNFT",
       "type": "CollByte",
-      "value": "08b59b14e4fdd60e5952314adbaa8b4e00bc0f0b676872a5224d3bf8591074cd"
+      "value": "54acaa0c6d5d3bc66b88364a423b5f156ed763f7236d437adb44d70787bc0f95"
     },
     {
       "name": "bankNFT",
       "type": "CollByte",
-      "value": "7bd873b8a886daa7a8bfacdad11d36aeee36c248aaf5779bcd8d41a13e4c1604"
+      "value": "1c648386f0529cc44c367cf941ede13533223f97b4560a0b31fa3ef668c3be62"
     },
     {
       "name": "bankAddress",
       "type": "Address",
-      "value": "29irJ65SHH5VxgQaXubC1z9eHzutUWV6BB2QGCbA9eQ53msbyzXdh6bSXm64WMwkiBNRgeXZy1ySSvVuKtEE4ifUbdXiV4PtdqsdxWxrhmJoqnDHSimsCz2zLsUGFm9XybyQ3QdV9jmhdFfM1PAWN3sLSj9uPqdAEtrPLYuCuFXYvW73mXDUGTYwebgG4HUPTbsr3B9Pp95HXQ7H6mb8yN5oqfjLk8fJhmKmq4o3fhirnpipht9ceon4mAzD9u8gkQUsEThRqRqZPB4tomoBmFY2rxe6KQPbtc9aS3VC6A8hnvRWnBWsnKCz6rpW3frg6jdB2pygJDPMubqpn9zy4iu6wDtB7YyTXDFkUShr5gsT4Q3v7ht7xzhykXLdaJitDhFockmfkQPWnyYUg7xtZAAj2rMTRHVXdXKvkVXMoFBSC9dX57aqe2Y3yLkP8jxxf8oSo98PFA5zRuZhQYgFmH6kSFGruuxLAw8FJYC4ffyzB3VRSsjzSQ85FkZwshC29CnF6Lwxj4Rq4cr9UKbsRJdYxKVKjuUBp28AgqEDNEqm3Lk22xo44pY7Jn3QhXS3CLtwqi2woDHAVXv8rjYsmWh5tnD1e52tFoA1YyXoEn3T2sZVGzvcZWJ4Y2Hb2jSH91NXHRjmM4zAcXiA24mGmXBL34PHzpnFKAoSe5yavYbW879wDdefeeX42ZVETsQHe7iHHw8T2BytSG5v5xdo1yxzaxwZP92E3p4M1Em2LDQDMr8zfWdEzJNrSiDY7MngqHa3Ds1NPNSL4xeo4ni7Ejy7LMFAdzugJDiNhqo35cKTqB7k31gbJ7Tab1w9aVcbQAQf1e3KPEEHG4Go797MN8s5oHGkTDkzVqSz5me3SUnoany1V3XXzNcApxuJMNxZosYgFJAR2huTSUcQPpCWp3ucbFTQQNcC1M3RXTctN1pnkCNpvjhoGBTtncsHSqcmtb31eQp2bX1JcGCRXSvcav6B5BqYw5jQ2WAX6Gu3xYLwS"
+      "value": "2zYVHmdQDGtyyZfeqFPdMFqWzMdK299yCj5uDJjiSxRgpHyjiV3mVfZCimFbEVkNkCuypT1khjhupnEb6af3ztdatgag24UzLjW7heidiBF4MqK42TBZC1mLNcm851mdBMW88XX81fNZnDW33C3DyuDSXSZmcpdasxr2GCRntrw6USxLQPxtxGpm8kp95iFHbiQfytk8mqFwJH5Lr3NrwFQWG9aNK7Ud4rTiT5S5SDMREAnQ76orAjbBjHspAh6t9hKgs2UnEj3EsC819oVRfaGmbCQStcnoKNUNYPSbBT7y1sGZL1gy5tXGvEwvX6TxEzgYyKmLq6MX9k2Zpqwtky6ERxkF7RVqvbQL28KLqf7VzqmsRU5WtLVSnJnuxS9XaJRC6WM5MH8fxhjvS4V9abodzVpyxEgMYiAmM9Jb72TLWvhJeE66rbLpqZD7CNrieUQbJaSJR5q2QqvehSdrecZRbapa4SLQYPnumHPgmd2okjTQs7dXecprHyGDH7P1TgBf66Rso2zNHryx3UCnPXRuZsWMjcv8cjk9dUjbSXqj1KQC3BEpcBkS8LULCuVNhbFYrd2e4uSXvbKg7qvFznJZonKVwXPN2meVWqJqFHgwZvZ98r8EQSFkRq1yauNPqkvzzQZ7Bep1wUELopBxT5J6ikucitYwEzXXLerSxWFAuqMYTJ2WUPyjcJphxo8Z6NHLiCGXfhFu26g4W5XBMSE4iTVZwHk8VcRd5Q6CqAa4tBPmmSxz2JCnjhpH2imZcNmjT2NH5QMmgFhpARktDcUhGHHQM9njEFcEGXqxCkGrrdqLChA1buM6YpBMgSPEMQGPrjQ7skzRjftE3Aq1mpZwAxnp3xEokPrnHmRXqHRgZoUZcoxhG6S4uhfmcM3KdJZvLAvn2YFHWcUk"
     },
     {
       "name": "poolAddresses",
       "type": "Address",
       "values": [
-        "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"
+        "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"
       ]
     },
     {
-      "name": "myAddress",
-      "type": "Address",
-      "value": "9hz1B19M44TNpmVe8MS4xvXyycehh5uP5aCfj4a6iAowj88hkd2"
+      "name":"coolingOffHeight",
+      "type":"Int",
+      "value":"430000"
     },
     {
       "name": "scCircDelta",
@@ -69,9 +59,9 @@
       "value": "100000000000"
     },
     {
-      "name": "minStorageRent",
+      "name": "defaultMaxReserveRatioPercent",
       "type": "Long",
-      "value": "10000000"
+      "value": "800"
     }
   ],
   "dataInputs": [
@@ -97,7 +87,7 @@
         {
           "index": 0,
           "id": {
-            "value": "scToken"
+            "name": "scToken"
           },
           "amount": {
             "name": "scTokenIn",
@@ -108,7 +98,7 @@
         {
           "index": 1,
           "id": {
-            "value": "rcToken"
+            "name": "rcToken"
           },
           "amount": {
             "name": "rcTokenIn"
@@ -138,13 +128,8 @@
       ],
       "nanoErgs": {
         "name": "bcReserveIn"
-      },
-      "options": [
-        "Strict"
-      ]
+      }
     }
-  ],
-  "outputs": [
   ],
   "unaryOps": [
     {
@@ -154,6 +139,36 @@
     }
   ],
   "branches": [
+    {
+      "name": "maxReserveRatioPercent",
+      "ifTrue": "defaultMaxReserveRatioPercent",
+      "ifFalse": "INF",
+      "condition": {
+        "first": "HEIGHT",
+        "op": "Lt",
+        "second": "coolingOffHeight"
+      }
+    },
+    {
+      "name": "reserveRatioPercentOut",
+      "ifTrue": "maxReserveRatioPercent",
+      "ifFalse": "bcReserveOut * 100 / bcReserveNeededOut",
+      "condition": {
+        "first": "bcReserveNeededOut",
+        "second": "0",
+        "op": "Eq"
+      }
+    },
+    {
+      "name": "reserveRatioPercentIn",
+      "ifTrue": "maxReserveRatioPercent",
+      "ifFalse": "bcReserveIn * 100 / bcReserveNeededIn",
+      "condition": {
+        "first": "bcReserveNeededIn",
+        "second": "0",
+        "op": "Eq"
+      }
+    },
     {
       "name": "liableRate",
       "ifTrue": "INF",
@@ -176,6 +191,36 @@
     }
   ],
   "binaryOps": [
+    {
+      "name": "bcReserveIn * 100 / bcReserveNeededIn",
+      "first": "bcReserveIn * 100",
+      "op": "Div",
+      "second": "bcReserveNeededIn"
+    },
+    {
+      "name": "bcReserveOut * 100 / bcReserveNeededOut",
+      "first": "bcReserveOut * 100",
+      "op": "Div",
+      "second": "bcReserveNeededOut"
+    },
+    {
+      "name": "bcReserveOut * 100",
+      "first": "bcReserveOut",
+      "op": "Mul",
+      "second": "100"
+    },
+    {
+      "name": "bcReserveIn * 100",
+      "first": "bcReserveIn",
+      "op": "Mul",
+      "second": "100"
+    },
+    {
+      "name": "bcReserveNeededOut",
+      "first": "rate",
+      "op": "Mul",
+      "second": "scCircOut"
+    },
     {
       "name": "scTokenOut",
       "first": "scTokenIn",
@@ -250,14 +295,21 @@
     }
   ],
   "returns": [
+    "scToken",
+    "rcToken",
+    "bankNFT",
     "scTokenIn",
     "rcTokenIn",
     "scCircIn",
     "rcCircIn",
     "bcReserveIn",
+    "reserveRatioPercentIn",
+    "reserveRatioPercentOut",
     "scCircDelta",
+    "bcDelta",
     "bcDeltaWithFee",
     "scNominalPrice",
+    "rateUSD",
     "rate"
   ]
 }
