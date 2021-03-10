@@ -2,6 +2,7 @@ package jde
 
 import jde.compiler.{TxBuilder, optSeq}
 import jde.helpers.{TraitDummyProtocol, TraitTokenFilter}
+import jde.parser.Parser
 import kiosk.encoding.ScalaErgoConverters
 import kiosk.ergo.{KioskBox, KioskCollByte, KioskErgoTree, KioskGroupElement, KioskInt, KioskLong, KioskType, StringToBetterString}
 import kiosk.explorer.Explorer
@@ -104,6 +105,79 @@ class ComputeSpec extends WordSpec with MockitoSugar with Matchers with TraitDum
       result("myRegister2").head.hex shouldBe toCollByte("123456")
       result("randomName").head.hex shouldBe toCollByte("506dfb0a34d44f2baef77d99f9da03b1f122bdc4c7c31791a0c706e23f1207e7")
       result("myRegister1").head.hex shouldBe toCollByte("123456")
+    }
+  }
+
+  "Address to GroupElement" should {
+    "generate correct GroupElement" in {
+      val goodTestVectors = Seq(
+        "9fPQAEACfqiyy5p2UQwRjiJmNHW4WMRfKqbCms22BQ446QBGWZv" -> "02724cd911e757db4dd0bcac7582d1812ad7c938faa77bf57c171b2a7daaef24b7",
+        "9gLGZ9AtJ6AFHdpkH6pnJ2LNx98STt4E23ZrkH2T1pFysTCCbjh" -> "02eee2fe4a7e75e91661d7a8453d82519453c06d7e412d6a927526fe5cf1d9301a",
+        "9htmJjmkqVm2ixtQZK7wb7ykZPX8V9axC56DjuEvnUdknyaNq3w" -> "03bc5e485f9d940a846c8184f503e92979263ebb01c42958303fe2ad1b9e5a9d21"
+      )
+      val badTestVectors = Seq( // change last byte of group element representation
+        "9fPQAEACfqiyy5p2UQwRjiJmNHW4WMRfKqbCms22BQ446QBGWZv" -> ("02724cd911e757db4dd0bcac7582d1812ad7c938faa77bf57c171b2a7daaef24b7" -> "02724cd911e757db4dd0bcac7582d1812ad7c938faa77bf57c171b2a7daaef24b8"),
+        "9gLGZ9AtJ6AFHdpkH6pnJ2LNx98STt4E23ZrkH2T1pFysTCCbjh" -> ("02eee2fe4a7e75e91661d7a8453d82519453c06d7e412d6a927526fe5cf1d9301a" -> "02eee2fe4a7e75e91661d7a8453d82519453c06d7e412d6a927526fe5cf1d9301b"),
+        "9htmJjmkqVm2ixtQZK7wb7ykZPX8V9axC56DjuEvnUdknyaNq3w" -> ("03bc5e485f9d940a846c8184f503e92979263ebb01c42958303fe2ad1b9e5a9d21" -> "03bc5e485f9d940a846c8184f503e92979263ebb01c42958303fe2ad1b9e5a9d23")
+      )
+      def script(address: String, groupElement: String) =
+        s"""{
+           |  "constants":[
+           |    {
+           |      "name": "address",
+           |      "value": "$address",
+           |      "type": "Address"
+           |    },
+           |    {
+           |      "name": "groupElement",
+           |      "value": "$groupElement",
+           |      "type": "GroupElement"
+           |    }
+           |  ],
+           |  "unaryOps":[
+           |    {
+           |      "name": "groupElementFromAddress",
+           |      "from": "address",
+           |      "op": "ToGroupElement"
+           |    },
+           |    {
+           |      "name": "ergoTreeFromGroupElement",
+           |      "from": "groupElement",
+           |      "op": "proveDlog"
+           |    },
+           |    {
+           |      "name": "addressFromErgoTree",
+           |      "from": "ergoTreeFromGroupElement",
+           |      "op": "ToAddress"
+           |    }
+           |  ],
+           |  "postConditions":[
+           |    {
+           |      "first": "groupElementFromAddress",
+           |      "second": "groupElement",
+           |      "op": "Eq"
+           |    },
+           |    {
+           |      "first": "addressFromErgoTree",
+           |      "second": "address",
+           |      "op": "Eq"
+           |    }
+           |  ]
+           |}
+           |""".stripMargin
+
+      goodTestVectors.foreach {
+        case (address, groupElement) =>
+          val protocolFromJson = Parser.parse(script(address, groupElement))
+          noException should be thrownBy txBuilder.compile(protocolFromJson)
+      }
+
+      badTestVectors.foreach {
+        case (address, (goodGroupElement, badGroupElement)) =>
+          val protocolFromJson = Parser.parse(script(address, badGroupElement))
+          the[Exception] thrownBy txBuilder.compile(protocolFromJson) should have message s"""Failed post-condition: groupElementFromAddress: ($goodGroupElement) Eq groupElement ($badGroupElement)"""
+      }
+
     }
   }
 }

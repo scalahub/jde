@@ -1,9 +1,9 @@
 package jde.compiler.model
 
 import jde.compiler._
-import kiosk.encoding.ScalaErgoConverters
 import kiosk.ergo._
 import jde.compiler.Multiple
+import kiosk.encoding.ScalaErgoConverters.stringToGroupElement
 import kiosk.script.ScriptUtil
 import scorex.crypto.hash.Blake2b256
 
@@ -58,9 +58,9 @@ object BinaryOperator extends MyEnum { // input and output types are same
 
 object UnaryOperator extends MyEnum { // input and output types are same
   type Operator = Value
-  val Hash, Neg, Abs, Sum, Avg, Min, Max, ProveDlog, ToCollByte, ToLong, ToInt, ToAddress, ToErgoTree, Count = Value
+  val Hash, Neg, Abs, Sum, Avg, Min, Max, ProveDlog, ToCollByte, ToLong, ToInt, ToAddress, ToErgoTree, Count, ToGroupElement = Value
   private val aggregates: Set[Operator] = Set(Sum, Avg, Min, Max)
-  private val converters: Set[Operator] = Set(ProveDlog, ToCollByte, ToLong, ToInt, ToAddress, ToErgoTree, Count)
+  private val converters: Set[Operator] = Set(ProveDlog, ToCollByte, ToLong, ToInt, ToAddress, ToErgoTree, Count, ToGroupElement)
 
   def operate(operator: Operator, values: Multiple[KioskType[_]], `type`: DataType.Type): Multiple[KioskType[_]] = {
     operator match {
@@ -77,27 +77,36 @@ object UnaryOperator extends MyEnum { // input and output types are same
     }
   }
 
+  private def toGroupElement(kioskErgoTree: KioskErgoTree) = {
+    val ergoTreeHex = kioskErgoTree.hex
+    if (ergoTreeHex.size != 72) throw new Exception("PoveDlog ErgoTree should be exactly 72 chars")
+    if (ergoTreeHex.take(6) != "0008cd") throw new Exception("Invalid address prefix for proveDlog")
+    KioskGroupElement(stringToGroupElement(ergoTreeHex.drop(6)))
+  }
+
   private def convertSingle(converter: Operator, fromValue: KioskType[_]): KioskType[_] = {
     converter match {
-      case ProveDlog  => KioskErgoTree(ScriptUtil.compile(Map("g" -> fromValue.asInstanceOf[KioskGroupElement]), "proveDlog(g)"))
-      case ToCollByte => KioskCollByte(fromValue.asInstanceOf[KioskErgoTree].serialize)
-      case ToLong     => KioskLong(fromValue.asInstanceOf[KioskInt].value.toLong)
-      case ToInt      => KioskInt(fromValue.asInstanceOf[KioskLong].value.toInt)
-      case ToAddress  => fromValue.ensuring(_.isInstanceOf[KioskErgoTree])
-      case ToErgoTree => fromValue.ensuring(_.isInstanceOf[KioskErgoTree])
+      case ProveDlog      => KioskErgoTree(ScriptUtil.compile(Map("g" -> fromValue.asInstanceOf[KioskGroupElement]), "proveDlog(g)"))
+      case ToGroupElement => toGroupElement(fromValue.asInstanceOf[KioskErgoTree])
+      case ToCollByte     => KioskCollByte(fromValue.asInstanceOf[KioskErgoTree].serialize)
+      case ToLong         => KioskLong(fromValue.asInstanceOf[KioskInt].value.toLong)
+      case ToInt          => KioskInt(fromValue.asInstanceOf[KioskLong].value.toInt)
+      case ToAddress      => fromValue.ensuring(_.isInstanceOf[KioskErgoTree])
+      case ToErgoTree     => fromValue.ensuring(_.isInstanceOf[KioskErgoTree])
     }
   }
 
   def getFromTo(operator: Operator): FromTo = {
     operator match {
-      case ProveDlog  => FromTo(from = DataType.GroupElement, to = DataType.ErgoTree)
-      case ToCollByte => FromTo(from = DataType.ErgoTree, to = DataType.CollByte)
-      case ToLong     => FromTo(from = DataType.Int, to = DataType.Long)
-      case ToInt      => FromTo(from = DataType.Long, to = DataType.Int)
-      case ToAddress  => FromTo(from = DataType.ErgoTree, to = DataType.Address)
-      case ToErgoTree => FromTo(from = DataType.Address, to = DataType.ErgoTree)
-      case Count      => FromTo(from = DataType.Unknown, to = DataType.Int)
-      case _          => FromTo(from = DataType.Unknown, to = DataType.Unknown)
+      case ProveDlog      => FromTo(from = DataType.GroupElement, to = DataType.ErgoTree)
+      case ToCollByte     => FromTo(from = DataType.ErgoTree, to = DataType.CollByte)
+      case ToLong         => FromTo(from = DataType.Int, to = DataType.Long)
+      case ToInt          => FromTo(from = DataType.Long, to = DataType.Int)
+      case ToAddress      => FromTo(from = DataType.ErgoTree, to = DataType.Address)
+      case ToErgoTree     => FromTo(from = DataType.Address, to = DataType.ErgoTree)
+      case ToGroupElement => FromTo(from = DataType.Address, to = DataType.GroupElement)
+      case Count          => FromTo(from = DataType.Unknown, to = DataType.Int)
+      case _              => FromTo(from = DataType.Unknown, to = DataType.Unknown)
     }
   }
 
