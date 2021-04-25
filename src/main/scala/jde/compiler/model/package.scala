@@ -52,13 +52,13 @@ package object model {
       options: Option[Set[MatchingOptions.Options]]
   ) {
     optSeq(tokens).foreach(token => requireDefined(token.index -> "token index", token.id -> "token.id", token.amount -> "token amount"))
-    optSeq(tokens).foreach(
-      token =>
-        for { id <- token.id; amount <- token.amount } requireEmpty(
-          id.name -> "Output token.id.name",
-          amount.name -> "Output token.amount.name",
-          amount.filter -> "Output token.amount.filter"
-      ))
+    optSeq(tokens).foreach(token =>
+      for { id <- token.id; amount <- token.amount } requireEmpty(
+        id.name -> "Output token.id.name",
+        amount.name -> "Output token.amount.name",
+        amount.filter -> "Output token.amount.filter"
+      )
+    )
     requireEmpty(optSeq(registers).map(_.name -> "Output register.name"): _*)
     requireEmpty(address.name -> "Output address.name", nanoErgs.name -> "Output nanoErgs.name", nanoErgs.filter -> "Output nanoErgs.filter")
     private lazy val outputOptions: Set[Options] = options.getOrElse(Set.empty)
@@ -97,7 +97,11 @@ package object model {
     override lazy val canPointToOnChain: Boolean = true
     override def getValue(implicit dictionary: Dictionary): Multiple[KioskCollByte] = {
       val kioskCollBytes = to[KioskCollByte](super.getValue)
-      kioskCollBytes.foreach(kioskCollByte => require(kioskCollByte.arrayBytes.length == 32, s"Id $this (${kioskCollByte.hex}) size (${kioskCollByte.arrayBytes.length}) != 32"))
+      kioskCollBytes.foreach(kioskCollByte => {
+        if (kioskCollByte.arrayBytes.length != 32) {
+          throw new Exception(s"Id $this (${kioskCollByte.hex}) size (${kioskCollByte.arrayBytes.length}) != 32")
+        }
+      })
       kioskCollBytes
     }
   }

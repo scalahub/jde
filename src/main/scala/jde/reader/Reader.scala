@@ -14,10 +14,15 @@ class Reader(explorer: Explorer)(implicit dictionary: Dictionary) {
       _ <- id.value
     } yield id.getValue.seq.map(boxId => OnChainBox.fromKioskBox(explorer.getBoxById(boxId.toString)))
 
+    // if box by id is defined then use those as the starting point to find boxes by address, otherwise use the set of all boxes
+    def filterByAddress(address: String): Seq[OnChainBox] = {
+      boxesById.map(_.filter(_.address == address)).getOrElse(explorer.getUnspentBoxes(address).map(OnChainBox.fromKioskBox))
+    }
+
     val boxesByAddress: Option[Seq[OnChainBox]] = for {
       address <- input.address
       _ <- address.value
-    } yield address.getTargets.map(tree2str).flatMap(explorer.getUnspentBoxes).map(OnChainBox.fromKioskBox)
+    } yield address.getTargets.map(tree2str).flatMap(filterByAddress)
 
     val matchedBoxes: Seq[OnChainBox] = optSeq(boxesByAddress) ++ optSeq(boxesById)
 
